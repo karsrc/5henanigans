@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://bef8kggx51eqa"]
+
+[ext_resource type="PackedScene" uid="uid://13tie2dpfqq8" path="res://board.tscn" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://od4bwabwgi30" path="res://player.tscn" id="2_0xm2m"]
+
+[node name="Main" type="Node" unique_id=1435858522]
+
+[node name="Board" parent="." unique_id=1922163880 instance=ExtResource("1_ig7tw")]
+
+[node name="Player" parent="." unique_id=357666152 instance=ExtResource("2_0xm2m")]
+position = Vector2(396.00006, 386.00006)
+scale = Vector2(3.5, 3.5)
