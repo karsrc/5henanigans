@@ -26,11 +26,9 @@ enabled=PackedStringArray("res://addons/godot_super-wakatime/plugin.cfg")
 
 [layer_names]
 
-2d_render/layer_1="Bushes"
-2d_render/layer_2="Player"
-2d_render/layer_3="Enemies"
-2d_render/layer_4="Bullets"
-2d_render/layer_5="Items"
+2d_render/size/viewport_height=648
+2d_render/size/viewport_width=1152
+2d_render/canvas_textures/default_texture_filter=1
 
 [physics]
 
