@@ -2,10 +2,15 @@
 
 [ext_resource type="PackedScene" uid="uid://13tie2dpfqq8" path="res://board.tscn" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://od4bwabwgi30" path="res://player.tscn" id="2_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://cd74vbdwob7kw" path="res://curse.tscn" id="2_h2yge"]
 
 [node name="Main" type="Node" unique_id=1435858522]
 
 [node name="Board" parent="." unique_id=1922163880 instance=ExtResource("1_ig7tw")]
+
+[node name="Curse" parent="." unique_id=237278958 instance=ExtResource("2_h2yge")]
+position = Vector2(269, 266)
+scale = Vector2(3, 3)
 
 [node name="Player" parent="." unique_id=357666152 instance=ExtResource("2_0xm2m")]
 position = Vector2(396.00006, 386.00006)
