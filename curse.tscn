@@ -64,8 +64,9 @@ collision_layer = 4
 script = ExtResource("1_dswov")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=84790911]
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_mof8b")
-animation = &"idle"
+animation = &"dead"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1259001487]

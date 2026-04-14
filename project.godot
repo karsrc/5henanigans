@@ -24,6 +24,10 @@ window/size/viewport_height=1080
 
 enabled=PackedStringArray("res://addons/godot_super-wakatime/plugin.cfg")
 
+[global_group]
+
+player=""
+
 [layer_names]
 
 2d_render/size/viewport_height=648
