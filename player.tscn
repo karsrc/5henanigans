@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://bure06k36yobu" path="res://player.gd" id="1_onrkg"]
 [ext_resource type="Texture2D" uid="uid://c4q6c7mxqh78h" path="res://graphics3/player/player_tileset.png" id="2_i3pqv"]
-[ext_resource type="Script" uid="uid://dl1fmdy47fnqm" path="res://camera_2d.gd" id="3_i3pqv"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_onrkg"]
 atlas = ExtResource("2_i3pqv")
@@ -94,13 +93,13 @@ script = ExtResource("1_onrkg")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"down"
+animation = &"up"
+frame_progress = 0.37174326
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1169180591]
 position = Vector2(0, 2)
 shape = SubResource("RectangleShape2D_onrkg")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=343036875]
-drag_horizontal_enabled = true
-drag_vertical_enabled = true
-script = ExtResource("3_i3pqv")
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
+position_smoothing_enabled = true
+position_smoothing_speed = 0.35

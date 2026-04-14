@@ -9,4 +9,4 @@
 
 [node name="Player" parent="." unique_id=357666152 instance=ExtResource("2_0xm2m")]
 position = Vector2(396.00006, 386.00006)
-scale = Vector2(3.5, 3.5)
+scale = Vector2(3, 3)
