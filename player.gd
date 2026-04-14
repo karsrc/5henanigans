@@ -1,22 +1,27 @@
 extends CharacterBody2D
 
 var direction: Vector2 = Vector2(1,1)
-var speed: int = 100
+var speed: int = 200
 
 func _physics_process(_delta: float):
-	direction = Input.get_vector("left", "right", "up", "down")
+	direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	velocity = direction * speed
-	animation()
+	update_animation()
 	move_and_slide()
 	
-	if Input.is_action_just_pressed("confirm"):
-		print ('something')
-	
-func animation():
-	if direction:
-		if direction.x > 0:
-			$AnimatedSprite2D.flip_h = true
-		else:
-			$AnimatedSprite2D.flip_h = false
+func update_animation():
+	if direction != Vector2.ZERO:
+		if direction.y < 0:
+			$AnimatedSprite2D.play("up") 
+		elif direction.y > 0:
+			$AnimatedSprite2D.play("down")
+		elif direction.x != 0:
+			$AnimatedSprite2D.play("left")
+			
+			if direction.x > 0:
+				$AnimatedSprite2D.flip_h = true
+			elif direction.x < 0:
+				$AnimatedSprite2D.flip_h = false
 	else:
+		$AnimatedSprite2D.stop()
 		$AnimatedSprite2D.frame = 0
