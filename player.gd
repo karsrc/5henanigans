@@ -24,6 +24,8 @@ func _physics_process(_delta: float):
 func perform_punch():
 	var overlapping_bodies = attack_area.get_overlapping_bodies()
 	
+	print("sektor: ", overlapping_bodies.size(), " things.")
+
 	for body in overlapping_bodies:
 		if body.is_in_group("enemy"):
 			if body.has_method("take_damage"):

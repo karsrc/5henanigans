@@ -6,8 +6,8 @@
 [ext_resource type="Script" uid="uid://bny1m0rolaj4m" path="res://area_2d.gd" id="3_2hs0m"]
 [ext_resource type="Script" uid="uid://dl1fmdy47fnqm" path="res://camera_2d.gd" id="3_i3pqv"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_onrkg"]
-size = Vector2(4, 8)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sweqy"]
+size = Vector2(23, 24)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_onrkg"]
 atlas = ExtResource("2_i3pqv")
@@ -102,11 +102,12 @@ scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_sweqy")
 
 [node name="AttackArea" type="Area2D" parent="AimPivot" unique_id=229833270]
+collision_mask = 4
 script = ExtResource("3_2hs0m")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AimPivot/AttackArea" unique_id=1169180591]
-position = Vector2(0, 2)
-shape = SubResource("RectangleShape2D_onrkg")
+position = Vector2(11.5, 0)
+shape = SubResource("RectangleShape2D_sweqy")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 sprite_frames = SubResource("SpriteFrames_1jxqw")
