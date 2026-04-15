@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://b5u4nlukuxrra" path="res://graphics3/player/Sprite-0002.png" id="2_sweqy"]
 [ext_resource type="Script" uid="uid://bny1m0rolaj4m" path="res://area_2d.gd" id="3_2hs0m"]
 [ext_resource type="Script" uid="uid://dl1fmdy47fnqm" path="res://camera_2d.gd" id="3_i3pqv"]
+[ext_resource type="Texture2D" uid="uid://cuuniufqbe328" path="res://graphics3/player/crosshair.png" id="6_2hs0m"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sweqy"]
 size = Vector2(23, 24)
@@ -126,3 +127,7 @@ drag_top_margin = 0.05
 drag_right_margin = 0.05
 drag_bottom_margin = 0.05
 script = ExtResource("3_i3pqv")
+
+[node name="Crosshair" type="Sprite2D" parent="." unique_id=954926638]
+scale = Vector2(0.33, 0.33)
+texture = ExtResource("6_2hs0m")

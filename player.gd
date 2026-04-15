@@ -1,5 +1,6 @@
 extends CharacterBody2D
 
+@onready var crosshair = $Crosshair
 @onready var aim_pivot = $AimPivot
 @onready var aim_spirte = $AimPivot/AimSprite
 @onready var attack_area = $AimPivot/AttackArea
@@ -8,7 +9,14 @@ extends CharacterBody2D
 var direction: Vector2 = Vector2(1,1)
 var speed: int = 280
 
+func _ready() -> void:
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	crosshair.z_index = 1000
+
+
 func _physics_process(_delta: float):
+	
+	crosshair.global_position = get_global_mouse_position()
 	
 	var mouse_pos = get_global_mouse_position()
 	aim_pivot.look_at(mouse_pos)
