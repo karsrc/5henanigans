@@ -59,7 +59,7 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_63m02"]
 size = Vector2(11, 12)
 
-[node name="Curse" type="CharacterBody2D" unique_id=237278958]
+[node name="Curse" type="CharacterBody2D" unique_id=237278958 groups=["enemy"]]
 collision_layer = 4
 script = ExtResource("1_dswov")
 
