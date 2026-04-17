@@ -17,12 +17,12 @@ var combo_drop_time: float = 1
 var is_using_skill: bool = false
 var leap_speed: int = 900
 var leap_duration: float = 0.3
-var leap_damage: int = 30
+var leap_damage: int = 15
 var leap_cooldown: float = 10
 var current_leap_cooldown: float = 0
-var barrage_duration: float = 1
-var barrage_hits: int = 5
-var barrage_damage: int = 8
+var barrage_duration: float = 2.5
+var barrage_hits: int = 15
+var barrage_damage: int = 4
 var is_barraging: bool = false
 
 
@@ -65,6 +65,10 @@ func _physics_process(_delta: float):
 		if Input.is_action_pressed("attack") and not is_attacking:
 			perform_punch()
 			
+	if is_barraging:
+		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		velocity = direction * (speed * 0.3) 
+	
 	update_animation()
 	move_and_slide()
 func die():
@@ -72,10 +76,13 @@ func die():
 	get_tree().reload_current_scene()
 	
 func take_damage(damage_amount: int):
-		current_hp -= damage_amount
-		print("Player got hit, current hp:", current_hp)
-		if current_hp <= 0:
-			die()
+	if is_using_skill:
+		print("Dodged! (Skill I-Frames)")
+		return
+	current_hp -= damage_amount
+	print("Player got hit, current hp:", current_hp)
+	if current_hp <= 0:
+		die()
 
 func perform_punch():
 	is_attacking = true
@@ -100,21 +107,29 @@ func perform_punch():
 	await get_tree().create_timer(0.3, false, false, true).timeout
 	is_attacking = false 
 func update_animation():
-	if direction != Vector2.ZERO:
-		if direction.y < 0:
-			$AnimatedSprite2D.play("up") 
-		elif direction.y > 0:
-			$AnimatedSprite2D.play("down")
-		elif direction.x != 0:
-			$AnimatedSprite2D.play("left")
+	if is_barraging:
+		$AnimatedSprite2D.play("left") 
+		if get_global_mouse_position().x > global_position.x:
+			$AnimatedSprite2D.flip_h = true
+		else:
+			$AnimatedSprite2D.flip_h = false
 			
-			if direction.x > 0:
-				$AnimatedSprite2D.flip_h = true
-			elif direction.x < 0:
-				$AnimatedSprite2D.flip_h = false
 	else:
-		$AnimatedSprite2D.stop()
-		$AnimatedSprite2D.frame = 0
+		if direction != Vector2.ZERO:
+			if direction.y < 0:
+				$AnimatedSprite2D.play("up") 
+			elif direction.y > 0:
+				$AnimatedSprite2D.play("down")
+			elif direction.x != 0:
+				$AnimatedSprite2D.play("left")
+				
+				if direction.x > 0:
+					$AnimatedSprite2D.flip_h = true
+				elif direction.x < 0:
+					$AnimatedSprite2D.flip_h = false
+		else:
+			$AnimatedSprite2D.stop()
+			$AnimatedSprite2D.frame = 0
 func trigger_hit_stop():
 	Engine.time_scale = 0.05
 	await get_tree().create_timer(0.1, true, false, true).timeout
@@ -144,6 +159,8 @@ func perform_leap():
 				if not enemies_hit.has(body):
 					print("Smashed through an enemy!")
 					body.take_damage(leap_damage)
+					
+						
 					enemies_hit.append(body)
 					hit_someone = true
 					
@@ -157,18 +174,42 @@ func perform_leap():
 func perform_barrage():
 	print("Skill 1: Barrage of Punches!")
 	is_using_skill = true
+	is_barraging = true
 	is_attacking = false
 	current_combo = 0
 	combo_target = null
-	velocity = Vector2.ZERO
+	
+	var punch_delay = barrage_duration / float(barrage_hits)
+	
 	for i in range(barrage_hits):
-		print("Barrage punch: ", i + 1)
+		
+		aim_spirte.modulate = Color(1.0, 0.0, 0.0, 0.8) 
+		await get_tree().physics_frame
 		
 		var overlapping_bodies = attack_area.get_overlapping_bodies()
 		for body in overlapping_bodies:
 			if body.is_in_group("enemy") and body.has_method("take_damage"):
 				body.take_damage(barrage_damage)
-		await get_tree().create_timer(barrage_duration / barrage_hits, false, false, true).timeout
+				
+				if body.has_method("stun"):
+					body.stun(0.4) 
+				
+				if i == barrage_hits - 1:
+					print("BARRAGE FINALE!")
+					trigger_hit_stop()
+					var shove_direction = global_position.direction_to(body.global_position)
+					body.global_position += shove_direction * 100 
+				else:
+					var distance_to_enemy = global_position.distance_to(body.global_position)
+					if distance_to_enemy > 40: 
+						var pull_direction = body.global_position.direction_to(global_position)
+						body.global_position += pull_direction * 6
+		var tween = get_tree().create_tween()
+		tween.tween_property(aim_spirte, "modulate", Color(1.0, 1.0, 1.0, 0.1), punch_delay - 0.05)
 		
-		is_using_skill = false
-		print("Barrage finished!")
+		await get_tree().create_timer(punch_delay).timeout
+		
+	aim_spirte.modulate = Color(1.0, 1.0, 1.0, 1.0) 
+	is_using_skill = false
+	is_barraging = false
+	print("Barrage finished!")
