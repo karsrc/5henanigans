@@ -15,6 +15,10 @@ var current_combo: int = 0
 var combo_target: Node2D = null
 var time_since_last_hit: float = 0
 var combo_drop_time: float = 1
+var is_using_skill: bool = false
+var leap_speed: int = 800
+var leap_duration: float = 0.25
+var leap_damage: int = 25
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -23,21 +27,29 @@ func _ready() -> void:
 
 func _physics_process(_delta: float):
 	crosshair.global_position = get_global_mouse_position()
-	var mouse_pos = get_global_mouse_position()
-	aim_pivot.look_at(mouse_pos)
-	if current_combo > 0 and not is_attacking:
-		time_since_last_hit += _delta
-		if time_since_last_hit >= combo_drop_time:
-			current_combo = 0
-			combo_target = null
-			print("Combo Failed. Back to 0")
-	if Input.is_action_just_pressed("attack") and not is_attacking:
-		perform_punch()
-	direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = direction * speed
+	aim_pivot.look_at(get_global_mouse_position())
+	
+	if not is_using_skill:
+		
+		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		velocity = direction * speed
+		
+		if Input.is_action_just_pressed("skill_3"):
+			perform_leap()
+			return 
+			
+		if current_combo > 0 and not is_attacking:
+			time_since_last_hit += _delta
+			if time_since_last_hit >= combo_drop_time:
+				current_combo = 0
+				combo_target = null
+				print("Combo Failed. Back to 0")
+				
+		if Input.is_action_pressed("attack") and not is_attacking:
+			perform_punch()
+			
 	update_animation()
 	move_and_slide()
-	
 func die():
 	print("GG Game over!")
 	get_tree().reload_current_scene()
@@ -90,3 +102,25 @@ func trigger_hit_stop():
 	Engine.time_scale = 0.05
 	await get_tree().create_timer(0.1, true, false, true).timeout
 	Engine.time_scale = 1
+func perform_leap():
+	print("Skill 3: Leap Forward!")
+	is_using_skill = true
+	is_attacking = false
+	current_combo = 0
+	combo_target = null
+	
+	var dash_direction = global_position.direction_to(get_global_mouse_position())
+	velocity = dash_direction * leap_speed
+	await get_tree().create_timer(leap_duration, false, false, true).timeout
+	var hit_someone = false
+	var overlapping_bodies = attack_area.get_overlapping_bodies()
+	for body in overlapping_bodies:
+		if body.is_in_group("enemy") and body.has_method("take_damage"):
+			body.take_damage(leap_damage)
+			hit_someone = true
+			
+	if hit_someone:
+		print("Leap crashed into an enemy!")
+		trigger_hit_stop()
+	velocity = Vector2.ZERO
+	is_using_skill = false
