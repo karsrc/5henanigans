@@ -9,16 +9,22 @@ var direction: Vector2 = Vector2(1,1)
 var speed: int = 280
 var max_hp: int = 100
 var current_hp: int = 100
-
 var is_attacking: bool = false
 var current_combo: int = 0
 var combo_target: Node2D = null
 var time_since_last_hit: float = 0
 var combo_drop_time: float = 1
 var is_using_skill: bool = false
-var leap_speed: int = 800
-var leap_duration: float = 0.25
-var leap_damage: int = 25
+var leap_speed: int = 900
+var leap_duration: float = 0.3
+var leap_damage: int = 30
+var leap_cooldown: float = 10
+var current_leap_cooldown: float = 0
+var barrage_duration: float = 1
+var barrage_hits: int = 5
+var barrage_damage: int = 8
+var is_barraging: bool = false
+
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -29,14 +35,25 @@ func _physics_process(_delta: float):
 	crosshair.global_position = get_global_mouse_position()
 	aim_pivot.look_at(get_global_mouse_position())
 	
+	if current_leap_cooldown > 0:
+		current_leap_cooldown -= _delta
+	
 	if not is_using_skill:
 		
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = direction * speed
 		
+		if Input.is_action_just_pressed("skill_1"):
+			perform_barrage()
+			return
+		
 		if Input.is_action_just_pressed("skill_3"):
-			perform_leap()
-			return 
+			if current_leap_cooldown <= 0:
+				perform_leap()
+				return
+			else:
+				print("Leap on cooldown right now.", round(current_leap_cooldown), "s. left.")
+		
 			
 		if current_combo > 0 and not is_attacking:
 			time_since_last_hit += _delta
@@ -111,16 +128,47 @@ func perform_leap():
 	
 	var dash_direction = global_position.direction_to(get_global_mouse_position())
 	velocity = dash_direction * leap_speed
-	await get_tree().create_timer(leap_duration, false, false, true).timeout
+	current_leap_cooldown = leap_cooldown
+	
+	var dash_time_passed = 0.0
+	var enemies_hit = []
 	var hit_someone = false
-	var overlapping_bodies = attack_area.get_overlapping_bodies()
-	for body in overlapping_bodies:
-		if body.is_in_group("enemy") and body.has_method("take_damage"):
-			body.take_damage(leap_damage)
-			hit_someone = true
-			
+	
+	while dash_time_passed < leap_duration:
+		await get_tree().physics_frame
+		dash_time_passed += get_physics_process_delta_time()
+		
+		var overlapping_bodies = attack_area.get_overlapping_bodies()
+		for body in overlapping_bodies:
+			if body.is_in_group("enemy") and body.has_method("take_damage"):
+				if not enemies_hit.has(body):
+					print("Smashed through an enemy!")
+					body.take_damage(leap_damage)
+					enemies_hit.append(body)
+					hit_someone = true
+					
+	velocity = Vector2.ZERO
+	
 	if hit_someone:
 		print("Leap crashed into an enemy!")
 		trigger_hit_stop()
-	velocity = Vector2.ZERO
+		
 	is_using_skill = false
+func perform_barrage():
+	print("Skill 1: Barrage of Punches!")
+	is_using_skill = true
+	is_attacking = false
+	current_combo = 0
+	combo_target = null
+	velocity = Vector2.ZERO
+	for i in range(barrage_hits):
+		print("Barrage punch: ", i + 1)
+		
+		var overlapping_bodies = attack_area.get_overlapping_bodies()
+		for body in overlapping_bodies:
+			if body.is_in_group("enemy") and body.has_method("take_damage"):
+				body.take_damage(barrage_damage)
+		await get_tree().create_timer(barrage_duration / barrage_hits, false, false, true).timeout
+		
+		is_using_skill = false
+		print("Barrage finished!")
