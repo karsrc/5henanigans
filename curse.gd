@@ -24,3 +24,9 @@ func take_damage(damage_amount: int):
 		
 func die():
 	queue_free()
+
+
+func _on_damage_aura_body_entered(body: Node2D) -> void:
+		if body.is_in_group("player"):
+			if body.has_method("take_damage"):
+				body.take_damage(15)

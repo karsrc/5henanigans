@@ -91,6 +91,10 @@ animations = [{
 "speed": 10.0
 }]
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2hs0m"]
+radius = 4.0
+height = 10.0
+
 [node name="Player" type="CharacterBody2D" unique_id=357666152 groups=["player"]]
 collision_layer = 2
 script = ExtResource("1_onrkg")
@@ -112,8 +116,7 @@ shape = SubResource("RectangleShape2D_sweqy")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"left"
-frame_progress = 0.6286447
+animation = &"down"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.35, 1.35)
@@ -131,3 +134,6 @@ script = ExtResource("3_i3pqv")
 [node name="Crosshair" type="Sprite2D" parent="." unique_id=954926638]
 scale = Vector2(0.33, 0.33)
 texture = ExtResource("6_2hs0m")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1395801368]
+shape = SubResource("CapsuleShape2D_2hs0m")

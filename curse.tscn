@@ -59,6 +59,9 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_63m02"]
 size = Vector2(36, 39)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_oqnd0"]
+radius = 13.0
+
 [node name="Curse" type="CharacterBody2D" unique_id=237278958 groups=["enemy"]]
 collision_layer = 4
 script = ExtResource("1_dswov")
@@ -72,3 +75,12 @@ autoplay = "idle"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1259001487]
 position = Vector2(1, 7.5)
 shape = SubResource("RectangleShape2D_63m02")
+
+[node name="DamageAura" type="Area2D" parent="." unique_id=975537963]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageAura" unique_id=690418280]
+position = Vector2(2, 9)
+shape = SubResource("CircleShape2D_oqnd0")
+
+[connection signal="body_entered" from="DamageAura" to="." method="_on_damage_aura_body_entered"]
