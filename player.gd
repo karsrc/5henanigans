@@ -20,10 +20,12 @@ var leap_duration: float = 0.3
 var leap_damage: int = 15
 var leap_cooldown: float = 10
 var current_leap_cooldown: float = 0
-var barrage_duration: float = 2.5
-var barrage_hits: int = 15
-var barrage_damage: int = 4
+var barrage_duration: float = 2
+var barrage_hits: int = 20
+var barrage_damage: int = 3
 var is_barraging: bool = false
+var barrage_cooldown: float = 9
+var current_barrage_cooldown: float = 0
 
 
 func _ready() -> void:
@@ -37,6 +39,8 @@ func _physics_process(_delta: float):
 	
 	if current_leap_cooldown > 0:
 		current_leap_cooldown -= _delta
+	if current_barrage_cooldown > 0:
+		current_barrage_cooldown -= _delta
 	
 	if not is_using_skill:
 		
@@ -44,9 +48,11 @@ func _physics_process(_delta: float):
 		velocity = direction * speed
 		
 		if Input.is_action_just_pressed("skill_1"):
-			perform_barrage()
-			return
-		
+			if current_barrage_cooldown <= 0:
+				perform_barrage()
+				return
+			else:
+				print("Barrage on cooldown!", round(current_barrage_cooldown), "s left.")
 		if Input.is_action_just_pressed("skill_3"):
 			if current_leap_cooldown <= 0:
 				perform_leap()
@@ -83,6 +89,14 @@ func take_damage(damage_amount: int):
 	print("Player got hit, current hp:", current_hp)
 	if current_hp <= 0:
 		die()
+
+func shake_camera(intensity: float):
+	var camera = $Camera2D
+	if camera:
+		camera.offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
+		var tween = get_tree().create_tween()
+		tween.tween_property(camera, "offset", Vector2.ZERO, 005)
+
 
 func perform_punch():
 	is_attacking = true
@@ -179,16 +193,20 @@ func perform_barrage():
 	current_combo = 0
 	combo_target = null
 	
+	current_barrage_cooldown = barrage_cooldown
+	
 	var punch_delay = barrage_duration / float(barrage_hits)
 	
 	for i in range(barrage_hits):
-		
 		aim_spirte.modulate = Color(1.0, 0.0, 0.0, 0.8) 
 		await get_tree().physics_frame
 		
 		var overlapping_bodies = attack_area.get_overlapping_bodies()
+		var enemies_in_range = 0 
+		
 		for body in overlapping_bodies:
 			if body.is_in_group("enemy") and body.has_method("take_damage"):
+				enemies_in_range += 1
 				body.take_damage(barrage_damage)
 				
 				if body.has_method("stun"):
@@ -197,18 +215,25 @@ func perform_barrage():
 				if i == barrage_hits - 1:
 					print("BARRAGE FINALE!")
 					trigger_hit_stop()
+					shake_camera(15)
 					var shove_direction = global_position.direction_to(body.global_position)
-					body.global_position += shove_direction * 100 
+					var target_position = body.global_position + (shove_direction * 150)
+					var knockback_tween = get_tree().create_tween()
+					knockback_tween.tween_property(body, "global_position", target_position, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 				else:
 					var distance_to_enemy = global_position.distance_to(body.global_position)
 					if distance_to_enemy > 40: 
 						var pull_direction = body.global_position.direction_to(global_position)
 						body.global_position += pull_direction * 6
+						
+		if enemies_in_range == 0:
+			print("Nobody left! Canceling early.")
+			break 
+			
 		var tween = get_tree().create_tween()
 		tween.tween_property(aim_spirte, "modulate", Color(1.0, 1.0, 1.0, 0.1), punch_delay - 0.05)
 		
 		await get_tree().create_timer(punch_delay).timeout
-		
 	aim_spirte.modulate = Color(1.0, 1.0, 1.0, 1.0) 
 	is_using_skill = false
 	is_barraging = false
