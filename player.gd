@@ -155,6 +155,8 @@ func perform_leap():
 	current_combo = 0
 	combo_target = null
 	
+	set_collision_mask_value(2, false)
+	
 	var dash_direction = global_position.direction_to(get_global_mouse_position())
 	velocity = dash_direction * leap_speed
 	current_leap_cooldown = leap_cooldown
@@ -173,17 +175,26 @@ func perform_leap():
 				if not enemies_hit.has(body):
 					print("Smashed through an enemy!")
 					body.take_damage(leap_damage)
-					
-						
 					enemies_hit.append(body)
-					hit_someone = true
+					trigger_hit_stop()
 					
 	velocity = Vector2.ZERO
+
+	var all_enemies = get_tree().get_nodes_in_group("enemy")
+	for enemy in all_enemies:
+		var distance = global_position.distance_to(enemy.global_position)
+		if distance < 40:
+			
+			var shove_direction = global_position.direction_to(enemy.global_position)
+			if shove_direction == Vector2.ZERO:
+				shove_direction = Vector2(1, 0)
+			enemy.move_and_collide(shove_direction * 45)
 	
 	if hit_someone:
 		print("Leap crashed into an enemy!")
 		trigger_hit_stop()
-		
+	set_collision_mask_value(2, true)
+	
 	is_using_skill = false
 func perform_barrage():
 	print("Skill 1: Barrage of Punches!")

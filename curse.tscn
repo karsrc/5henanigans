@@ -56,9 +56,6 @@ animations = [{
 "speed": 10.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_63m02"]
-size = Vector2(27, 9)
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_oqnd0"]
 radius = 42.0119
 
@@ -68,8 +65,12 @@ bg_color = Color(1, 1, 1, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_653ly"]
 bg_color = Color(1, 0, 0, 1)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_63m02"]
+size = Vector2(27, 9)
+
 [node name="Curse" type="CharacterBody2D" unique_id=237278958 groups=["enemy"]]
 collision_layer = 7
+collision_mask = 4
 script = ExtResource("1_dswov")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=84790911]
@@ -78,12 +79,7 @@ sprite_frames = SubResource("SpriteFrames_mof8b")
 animation = &"idle"
 autoplay = "idle"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1259001487]
-position = Vector2(1.5, 19.5)
-shape = SubResource("RectangleShape2D_63m02")
-
 [node name="DamageAura" type="Area2D" parent="." unique_id=975537963]
-collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DamageAura" unique_id=690418280]
 position = Vector2(2, 9)
@@ -97,5 +93,9 @@ offset_bottom = -8.0
 theme_override_styles/background = SubResource("StyleBoxFlat_63m02")
 theme_override_styles/fill = SubResource("StyleBoxFlat_653ly")
 show_percentage = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1759117696]
+position = Vector2(1.5, 19.5)
+shape = SubResource("RectangleShape2D_63m02")
 
 [connection signal="body_entered" from="DamageAura" to="." method="_on_damage_aura_body_entered"]

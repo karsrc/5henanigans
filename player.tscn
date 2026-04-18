@@ -95,7 +95,7 @@ animations = [{
 size = Vector2(8, 3)
 
 [node name="Player" type="CharacterBody2D" unique_id=357666152 groups=["player"]]
-collision_layer = 2
+collision_mask = 3
 script = ExtResource("1_onrkg")
 
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
@@ -106,7 +106,7 @@ scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_sweqy")
 
 [node name="AttackArea" type="Area2D" parent="AimPivot" unique_id=229833270]
-collision_mask = 4
+collision_mask = 2
 script = ExtResource("3_2hs0m")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AimPivot/AttackArea" unique_id=1169180591]
