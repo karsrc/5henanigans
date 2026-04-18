@@ -57,10 +57,10 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_63m02"]
-size = Vector2(36, 39)
+size = Vector2(27, 9)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_oqnd0"]
-radius = 13.0
+radius = 42.0119
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_63m02"]
 bg_color = Color(1, 1, 1, 1)
@@ -79,7 +79,7 @@ animation = &"idle"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1259001487]
-position = Vector2(1, 7.5)
+position = Vector2(1.5, 19.5)
 shape = SubResource("RectangleShape2D_63m02")
 
 [node name="DamageAura" type="Area2D" parent="." unique_id=975537963]

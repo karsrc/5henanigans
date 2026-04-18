@@ -91,9 +91,8 @@ animations = [{
 "speed": 10.0
 }]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2hs0m"]
-radius = 4.0
-height = 10.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2hs0m"]
+size = Vector2(8, 3)
 
 [node name="Player" type="CharacterBody2D" unique_id=357666152 groups=["player"]]
 collision_layer = 2
@@ -136,4 +135,5 @@ scale = Vector2(0.33, 0.33)
 texture = ExtResource("6_2hs0m")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1395801368]
-shape = SubResource("CapsuleShape2D_2hs0m")
+position = Vector2(0, 5.5)
+shape = SubResource("RectangleShape2D_2hs0m")

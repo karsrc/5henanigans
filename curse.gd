@@ -1,7 +1,10 @@
 extends CharacterBody2D
 
 @onready var health_bar = $ProgressBar
+@onready var damage_aura = $DamageAura
 
+var attack_cooldown: float = 1.0 
+var current_attack_cooldown: float = 0.0
 var speed: int = 130
 var player = null
 var max_hp: int = 30
@@ -16,13 +19,31 @@ func _ready():
 	health_bar.value = current_hp
 
 func _physics_process(delta: float):
+	if current_attack_cooldown > 0:
+		current_attack_cooldown -= delta
+		
 	if player:
 		var distance = global_position.distance_to(player.global_position)
-		if distance > 50:
+		
+		if distance > 40: 
 			var direction = global_position.direction_to(player.global_position)
 			velocity = direction * speed
 		else:
-			velocity = Vector2.ZERO
+			velocity = Vector2.ZERO 
+			
+		if not is_stunned and current_attack_cooldown <= 0:
+			var overlapping_bodies = damage_aura.get_overlapping_bodies()
+			
+			print("Enemy attack check: Found ", overlapping_bodies.size(), " things in aura.")
+			
+			for body in overlapping_bodies:
+				if body.is_in_group("player"):
+					print("Enemy sees the Player! Trying to punch...")
+					
+					if body.has_method("take_damage"):
+						print("Punch landed!")
+						body.take_damage(15) 
+						current_attack_cooldown = attack_cooldown
 	if not is_stunned:
 		move_and_slide()
 
@@ -56,10 +77,7 @@ func _on_damage_aura_body_entered(body: Node2D) -> void:
 
 func stun(duration: float):
 	if is_stunned: return
-	
 	is_stunned = true
 	print("Enemy is stunned for", duration, "seconds!")
-	
 	await get_tree().create_timer(duration, false, false, true).timeout
-	
 	is_stunned = false
