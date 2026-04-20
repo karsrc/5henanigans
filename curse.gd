@@ -68,7 +68,6 @@ func flash():
 
 func take_damage(damage_amount: int):
 	current_hp -= damage_amount
-	print('enemy-hit', current_hp)
 	
 	health_bar.value = current_hp
 	
@@ -81,6 +80,5 @@ func die():
 func stun(duration: float):
 	if is_stunned: return
 	is_stunned = true
-	print("Enemy is stunned for", duration, "seconds!")
 	await get_tree().create_timer(duration, false, false, true).timeout
 	is_stunned = false

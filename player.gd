@@ -4,34 +4,40 @@ extends CharacterBody2D
 @onready var aim_pivot = $AimPivot
 @onready var aim_spirte = $AimPivot/AimSprite
 @onready var attack_area = $AimPivot/AttackArea
+@onready var health_bar = $CanvasLayer/ProgressBar
 
 var direction: Vector2 = Vector2(1,1)
 var speed: int = 280
-var max_hp: int = 100
-var current_hp: int = 100
+var max_hp: int = 200
+var current_hp: int = 200
 var is_attacking: bool = false
 var current_combo: int = 0
 var combo_target: Node2D = null
 var time_since_last_hit: float = 0
 var combo_drop_time: float = 1
+var is_invincible: bool = false
 var is_using_skill: bool = false
+
 var leap_speed: int = 1050
 var leap_duration: float = 0.4
 var leap_damage: int = 30
-var leap_cooldown: float = 10
-var current_leap_cooldown: float = 0
-var barrage_duration: float = 2
-var barrage_hits: int = 20
-var barrage_damage: int = 3
+var leap_cooldown: float = 10.0
+var current_leap_cooldown: float = 0.0
+
+var barrage_duration: float = 2.0
+var barrage_hits: int = 25
+var barrage_damage: int = 6
 var is_barraging: bool = false
-var barrage_cooldown: float = 9
-var current_barrage_cooldown: float = 0
+var barrage_cooldown: float = 9.0
+var current_barrage_cooldown: float = 0.0
 
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	crosshair.z_index = 1000
 	current_hp = max_hp
+	health_bar.max_value = max_hp
+	health_bar.value = current_hp
 
 func _physics_process(_delta: float):
 	crosshair.global_position = get_global_mouse_position()
@@ -51,59 +57,58 @@ func _physics_process(_delta: float):
 			if current_barrage_cooldown <= 0:
 				perform_barrage()
 				return
-			else:
-				print("Barrage on cooldown!", round(current_barrage_cooldown), "s left.")
 		if Input.is_action_just_pressed("skill_3"):
 			if current_leap_cooldown <= 0:
 				perform_leap()
 				return
-			else:
-				print("Leap on cooldown right now.", round(current_leap_cooldown), "s. left.")
 		
-			
 		if current_combo > 0 and not is_attacking:
 			time_since_last_hit += _delta
 			if time_since_last_hit >= combo_drop_time:
 				current_combo = 0
 				combo_target = null
-				print("Combo Failed. Back to 0")
 				
 		if Input.is_action_pressed("attack") and not is_attacking:
 			perform_punch()
 			
 	if is_barraging:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		velocity = direction * (speed * 0.3) 
+		velocity = direction * (speed * 0.6) 
 	
 	update_animation()
 	move_and_slide()
+
 func die():
-	print("GG Game over!")
 	get_tree().reload_current_scene()
 	
-func take_damage(damage_amount: int):
-	if is_using_skill:
-		print("Dodged! (Skill I-Frames)")
+func take_damage(damage_amount: int) -> void:
+	if is_using_skill or is_invincible:
 		return
+		
 	current_hp -= damage_amount
-	print("Player got hit, current hp:", current_hp)
+	health_bar.value = current_hp
+	
 	if current_hp <= 0:
 		die()
+	else:
+		is_invincible = true
+		$AnimatedSprite2D.modulate = Color(1, 0, 0, 0.5) 
+		await get_tree().create_timer(0.5, false, false, true).timeout
+		$AnimatedSprite2D.modulate = Color(1, 1, 1, 1) 
+		is_invincible = false
 
 func shake_camera(intensity: float):
 	var camera = $Camera2D
 	if camera:
 		camera.offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
 		var tween = get_tree().create_tween()
-		tween.tween_property(camera, "offset", Vector2.ZERO, 005)
-
+		tween.tween_property(camera, "offset", Vector2.ZERO, 0.05)
 
 func perform_punch():
 	is_attacking = true
 	time_since_last_hit = 0
 	var hit_enemy = false
 	var overlapping_bodies = attack_area.get_overlapping_bodies()
-	print("sektor: ", overlapping_bodies.size(), " things.")
 	for body in overlapping_bodies:
 		if body.is_in_group("enemy") and body.has_method("take_damage"):
 			hit_enemy = true
@@ -112,7 +117,6 @@ func perform_punch():
 			else:
 				combo_target = body
 				current_combo = 1
-			print("Target hit. Combo is now: ", current_combo)
 			body.take_damage(10)
 			break 
 	if not hit_enemy:
@@ -120,6 +124,7 @@ func perform_punch():
 		combo_target = null
 	await get_tree().create_timer(0.3, false, false, true).timeout
 	is_attacking = false 
+
 func update_animation():
 	if is_barraging:
 		$AnimatedSprite2D.play("left") 
@@ -144,16 +149,20 @@ func update_animation():
 		else:
 			$AnimatedSprite2D.stop()
 			$AnimatedSprite2D.frame = 0
+
 func trigger_hit_stop():
 	Engine.time_scale = 0.05
 	await get_tree().create_timer(0.1, true, false, true).timeout
 	Engine.time_scale = 1
+
 func perform_leap() -> void:
-	print("Skill 3: Armor Breaker Leap!")
 	is_using_skill = true
 	is_attacking = false
 	current_combo = 0
 	combo_target = null
+	
+	velocity = Vector2.ZERO
+	await get_tree().create_timer(0.2, false, false, true).timeout
 	
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
 	for enemy in all_enemies:
@@ -175,7 +184,6 @@ func perform_leap() -> void:
 		for body in overlapping_bodies:
 			if body.is_in_group("enemy") and body.has_method("take_damage"):
 				if not enemies_hit.has(body):
-					print("Smashed and Stunned an enemy!")
 					body.take_damage(leap_damage)
 					if body.has_method("stun"):
 						body.stun(1.5)
@@ -188,6 +196,14 @@ func perform_leap() -> void:
 	all_enemies = get_tree().get_nodes_in_group("enemy")
 	for enemy in all_enemies:
 		var distance = global_position.distance_to(enemy.global_position)
+		
+		if distance < 80:
+			if enemy.has_method("take_damage") and not enemies_hit.has(enemy):
+				enemy.take_damage(25)
+			if enemy.has_method("stun"):
+				enemy.stun(1.5)
+			hit_someone = true
+			
 		if distance < 40:
 			var shove_direction = global_position.direction_to(enemy.global_position)
 			if shove_direction == Vector2.ZERO:
@@ -195,15 +211,15 @@ func perform_leap() -> void:
 			enemy.global_position += shove_direction * 45
 	
 	if hit_someone:
-		print("Leap finished!")
 		trigger_hit_stop()
+		shake_camera(20.0)
 		
 	for enemy in all_enemies:
 		remove_collision_exception_with(enemy)
 	
 	is_using_skill = false
+
 func perform_barrage():
-	print("Skill 1: Barrage of Punches!")
 	is_using_skill = true
 	is_barraging = true
 	is_attacking = false
@@ -230,7 +246,6 @@ func perform_barrage():
 					body.stun(0.4) 
 				
 				if i == barrage_hits - 1:
-					print("BARRAGE FINALE!")
 					trigger_hit_stop()
 					shake_camera(15)
 					var shove_direction = global_position.direction_to(body.global_position)
@@ -244,7 +259,6 @@ func perform_barrage():
 						body.global_position += pull_direction * 6
 						
 		if enemies_in_range == 0:
-			print("Nobody left! Canceling early.")
 			break 
 			
 		var tween = get_tree().create_tween()
@@ -254,4 +268,3 @@ func perform_barrage():
 	aim_spirte.modulate = Color(1.0, 1.0, 1.0, 1.0) 
 	is_using_skill = false
 	is_barraging = false
-	print("Barrage finished!")
