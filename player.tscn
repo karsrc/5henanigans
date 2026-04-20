@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://bny1m0rolaj4m" path="res://area_2d.gd" id="3_2hs0m"]
 [ext_resource type="Script" uid="uid://dl1fmdy47fnqm" path="res://camera_2d.gd" id="3_i3pqv"]
 [ext_resource type="Texture2D" uid="uid://cuuniufqbe328" path="res://graphics3/player/crosshair.png" id="6_2hs0m"]
+[ext_resource type="Texture2D" uid="uid://c7x7lpdx75tby" path="res://icon.svg" id="7_1jxqw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sweqy"]
 size = Vector2(23, 24)
@@ -155,3 +156,7 @@ offset_bottom = 1013.0
 theme_override_styles/background = SubResource("StyleBoxFlat_2hs0m")
 theme_override_styles/fill = SubResource("StyleBoxFlat_1jxqw")
 show_percentage = false
+
+[node name="TimingRing" type="Sprite2D" parent="." unique_id=1574927490]
+visible = false
+texture = ExtResource("7_1jxqw")

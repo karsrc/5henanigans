@@ -5,6 +5,7 @@ extends CharacterBody2D
 @onready var aim_spirte = $AimPivot/AimSprite
 @onready var attack_area = $AimPivot/AttackArea
 @onready var health_bar = $CanvasLayer/ProgressBar
+@onready var timing_ring = $TimingRing
 
 var direction: Vector2 = Vector2(1,1)
 var speed: int = 280
@@ -17,19 +18,23 @@ var time_since_last_hit: float = 0
 var combo_drop_time: float = 1
 var is_invincible: bool = false
 var is_using_skill: bool = false
-
 var leap_speed: int = 1050
 var leap_duration: float = 0.4
 var leap_damage: int = 30
 var leap_cooldown: float = 10.0
 var current_leap_cooldown: float = 0.0
-
 var barrage_duration: float = 2.0
 var barrage_hits: int = 25
 var barrage_damage: int = 6
 var is_barraging: bool = false
 var barrage_cooldown: float = 9.0
 var current_barrage_cooldown: float = 0.0
+var divergent_cooldown: float = 8
+var current_divergent_cooldown: float = 0
+var is_sprinting: bool = false
+var black_flash_window_active: bool = false
+var black_flash_triggered: bool = false
+var is_in_zone: bool = false
 
 
 func _ready() -> void:
@@ -47,9 +52,10 @@ func _physics_process(_delta: float):
 		current_leap_cooldown -= _delta
 	if current_barrage_cooldown > 0:
 		current_barrage_cooldown -= _delta
+	if current_divergent_cooldown > 0:
+		current_divergent_cooldown -= _delta
 	
 	if not is_using_skill:
-		
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = direction * speed
 		
@@ -57,6 +63,12 @@ func _physics_process(_delta: float):
 			if current_barrage_cooldown <= 0:
 				perform_barrage()
 				return
+				
+		if Input.is_action_just_pressed("skill_2"):
+			if current_divergent_cooldown <= 0:
+				perform_divergent_sprint()
+				return
+				
 		if Input.is_action_just_pressed("skill_3"):
 			if current_leap_cooldown <= 0:
 				perform_leap()
@@ -68,9 +80,12 @@ func _physics_process(_delta: float):
 				current_combo = 0
 				combo_target = null
 				
-		if Input.is_action_pressed("attack") and not is_attacking:
+	if Input.is_action_just_pressed("attack"):
+		if black_flash_window_active:
+			black_flash_triggered = true
+		elif not is_attacking and not is_using_skill:
 			perform_punch()
-			
+
 	if is_barraging:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = direction * (speed * 0.6) 
@@ -117,8 +132,13 @@ func perform_punch():
 			else:
 				combo_target = body
 				current_combo = 1
-			body.take_damage(10)
-			break 
+			if is_in_zone:
+				body.take_damage(20)
+				var shove_dir = global_position.direction_to(body.global_position)
+				body.global_position += shove_dir * 15
+			else: 
+				body.take_damage(10)
+			break
 	if not hit_enemy:
 		current_combo = 0
 		combo_target = null
@@ -268,3 +288,85 @@ func perform_barrage():
 	aim_spirte.modulate = Color(1.0, 1.0, 1.0, 1.0) 
 	is_using_skill = false
 	is_barraging = false
+
+func perform_divergent_sprint():
+	is_using_skill = true
+	is_sprinting = true
+	black_flash_window_active = false
+	black_flash_triggered = false
+	current_divergent_cooldown = divergent_cooldown
+	
+	var dash_dir = global_position.direction_to(get_global_mouse_position())
+	velocity = dash_dir * (speed * 2.5)
+	
+	var time_passed = 0
+	while time_passed < 0.4 and is_sprinting:
+		await get_tree().physics_frame
+		time_passed += get_physics_process_delta_time()
+		
+		for body in attack_area.get_overlapping_bodies():
+			if body.is_in_group("enemy") and body.has_method("take_damage"):
+				is_sprinting = false
+				velocity = Vector2.ZERO 
+				
+				black_flash_window_active = true
+				
+				$AnimatedSprite2D.modulate = Color(10, 10, 10)
+				Engine.time_scale = 0.05
+				timing_ring.scale = Vector2(3.0, 3.0) 
+				timing_ring.visible = true
+				timing_ring.modulate = Color(0, 0, 0) 
+				
+				var tween = get_tree().create_tween().bind_node(self).set_ignore_time_scale(true)
+				tween.tween_property(timing_ring, "scale", Vector2(1.0, 1.0), 0.3)
+				
+				await get_tree().create_timer(0.3, true, false, true).timeout 
+				
+				black_flash_window_active = false
+				timing_ring.visible = false
+				Engine.time_scale = 1.0
+				$AnimatedSprite2D.modulate = Color(1, 1, 1) if not is_in_zone else Color(0.8, 0.2, 0.2)
+				
+				if black_flash_triggered:
+					execute_black_flash(body)
+				else:
+					execute_divergent_fist(body)
+				return 
+	velocity = Vector2.ZERO
+	is_using_skill = false
+	is_sprinting = false
+
+func execute_divergent_fist(target: Node2D):
+	
+	target.take_damage(10)
+	is_using_skill = false
+	await get_tree().create_timer(0.5, false, false, true).timeout
+	
+	if is_instance_valid(target):
+		trigger_hit_stop()
+		shake_camera(10)
+		target.take_damage(20)
+		var all_enemies = get_tree().get_nodes_in_group("enemy")
+		for enemy in all_enemies:
+			if is_instance_valid(enemy) and enemy != target:
+				if target.global_position.distance_to(enemy.global_position) < 65:
+					var shove_dir = target.global_position.direction_to(enemy.global_position)
+					if shove_dir == Vector2.ZERO: shove_dir = Vector2.RIGHT
+					enemy.global_position += shove_dir * 50
+					
+func execute_black_flash(target: Node2D):
+	is_using_skill = false
+	$AnimatedSprite2D.modulate = Color(-1, -0.5, -0.5)
+	trigger_hit_stop()
+	shake_camera(25)
+	target.take_damage(60)
+	current_divergent_cooldown = 0
+	if not is_in_zone:
+		enter_the_zone()
+		
+func enter_the_zone():
+	is_in_zone = true
+	$AnimatedSprite2D.modulate = Color(0.8, 0.2, 0.2)
+	await get_tree().create_timer(7.0, false, false, true).timeout
+	is_in_zone = false
+	$AnimatedSprite2D.modulate = Color(1,1,1)
