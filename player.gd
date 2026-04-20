@@ -15,9 +15,9 @@ var combo_target: Node2D = null
 var time_since_last_hit: float = 0
 var combo_drop_time: float = 1
 var is_using_skill: bool = false
-var leap_speed: int = 900
-var leap_duration: float = 0.3
-var leap_damage: int = 15
+var leap_speed: int = 1050
+var leap_duration: float = 0.4
+var leap_damage: int = 30
 var leap_cooldown: float = 10
 var current_leap_cooldown: float = 0
 var barrage_duration: float = 2
@@ -148,14 +148,16 @@ func trigger_hit_stop():
 	Engine.time_scale = 0.05
 	await get_tree().create_timer(0.1, true, false, true).timeout
 	Engine.time_scale = 1
-func perform_leap():
-	print("Skill 3: Leap Forward!")
+func perform_leap() -> void:
+	print("Skill 3: Armor Breaker Leap!")
 	is_using_skill = true
 	is_attacking = false
 	current_combo = 0
 	combo_target = null
 	
-	set_collision_mask_value(2, false)
+	var all_enemies = get_tree().get_nodes_in_group("enemy")
+	for enemy in all_enemies:
+		add_collision_exception_with(enemy)
 	
 	var dash_direction = global_position.direction_to(get_global_mouse_position())
 	velocity = dash_direction * leap_speed
@@ -173,27 +175,31 @@ func perform_leap():
 		for body in overlapping_bodies:
 			if body.is_in_group("enemy") and body.has_method("take_damage"):
 				if not enemies_hit.has(body):
-					print("Smashed through an enemy!")
+					print("Smashed and Stunned an enemy!")
 					body.take_damage(leap_damage)
+					if body.has_method("stun"):
+						body.stun(1.5)
+						
 					enemies_hit.append(body)
-					trigger_hit_stop()
+					hit_someone = true 
 					
 	velocity = Vector2.ZERO
-
-	var all_enemies = get_tree().get_nodes_in_group("enemy")
+	
+	all_enemies = get_tree().get_nodes_in_group("enemy")
 	for enemy in all_enemies:
 		var distance = global_position.distance_to(enemy.global_position)
 		if distance < 40:
-			
 			var shove_direction = global_position.direction_to(enemy.global_position)
 			if shove_direction == Vector2.ZERO:
 				shove_direction = Vector2(1, 0)
-			enemy.move_and_collide(shove_direction * 45)
+			enemy.global_position += shove_direction * 45
 	
 	if hit_someone:
-		print("Leap crashed into an enemy!")
+		print("Leap finished!")
 		trigger_hit_stop()
-	set_collision_mask_value(2, true)
+		
+	for enemy in all_enemies:
+		remove_collision_exception_with(enemy)
 	
 	is_using_skill = false
 func perform_barrage():
