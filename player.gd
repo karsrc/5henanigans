@@ -35,6 +35,8 @@ var is_sprinting: bool = false
 var black_flash_window_active: bool = false
 var black_flash_triggered: bool = false
 var is_in_zone: bool = false
+var qte_in_progress: bool = false
+var qte_failed: bool = false
 
 
 func _ready() -> void:
@@ -80,10 +82,14 @@ func _physics_process(_delta: float):
 				current_combo = 0
 				combo_target = null
 				
-	if Input.is_action_just_pressed("attack"):
-		if black_flash_window_active:
-			black_flash_triggered = true
-		elif not is_attacking and not is_using_skill:
+	if qte_in_progress:
+		if Input.is_action_just_pressed("attack"):
+			if black_flash_window_active and not qte_failed:
+				black_flash_triggered = true
+			else:
+				qte_failed = true
+	else:
+		if Input.is_action_pressed("attack") and not is_attacking and not is_using_skill:
 			perform_punch()
 
 	if is_barraging:
@@ -309,29 +315,40 @@ func perform_divergent_sprint():
 				is_sprinting = false
 				velocity = Vector2.ZERO 
 				
-				black_flash_window_active = true
+				qte_in_progress = true
+				qte_failed = false
+				black_flash_window_active = false
+				black_flash_triggered = false
 				
 				$AnimatedSprite2D.modulate = Color(10, 10, 10)
-				Engine.time_scale = 0.05
+				Engine.time_scale = 0.05 
+				
 				timing_ring.scale = Vector2(3.0, 3.0) 
 				timing_ring.visible = true
 				timing_ring.modulate = Color(0, 0, 0) 
 				
 				var tween = get_tree().create_tween().bind_node(self).set_ignore_time_scale(true)
-				tween.tween_property(timing_ring, "scale", Vector2(1.0, 1.0), 0.3)
+				tween.tween_property(timing_ring, "scale", Vector2(1.0, 1.0), 0.25)
 				
-				await get_tree().create_timer(0.3, true, false, true).timeout 
+				await get_tree().create_timer(0.15, true, false, true).timeout 
 				
+				if not qte_failed:
+					black_flash_window_active = true
+					timing_ring.modulate = Color(2, 0, 0) 
+					
+				await get_tree().create_timer(0.1, true, false, true).timeout 
+				
+				qte_in_progress = false
 				black_flash_window_active = false
 				timing_ring.visible = false
 				Engine.time_scale = 1.0
 				$AnimatedSprite2D.modulate = Color(1, 1, 1) if not is_in_zone else Color(0.8, 0.2, 0.2)
 				
-				if black_flash_triggered:
+				if black_flash_triggered and not qte_failed:
 					execute_black_flash(body)
 				else:
 					execute_divergent_fist(body)
-				return 
+				return
 	velocity = Vector2.ZERO
 	is_using_skill = false
 	is_sprinting = false

@@ -159,4 +159,5 @@ show_percentage = false
 
 [node name="TimingRing" type="Sprite2D" parent="." unique_id=1574927490]
 visible = false
+scale = Vector2(0.1, 0.1)
 texture = ExtResource("7_1jxqw")
