@@ -1,7 +1,6 @@
 extends CharacterBody2D
 
 @onready var health_bar = $ProgressBar
-@onready var damage_aura = $DamageAura
 
 var attack_cooldown: float = 1.0 
 var current_attack_cooldown: float = 0.0
@@ -10,6 +9,9 @@ var player = null
 var max_hp: int = 30
 var current_hp: int = 30
 var is_stunned: bool = false
+var attack_range: float = 55
+var stopping_distance: float = 40
+var separation_distance: float = 30
 
 
 func _ready():
@@ -22,28 +24,36 @@ func _physics_process(delta: float):
 	if current_attack_cooldown > 0:
 		current_attack_cooldown -= delta
 		
-	if player:
-		var distance = global_position.distance_to(player.global_position)
+	if player and not is_stunned:
+		var distance_to_player = global_position.distance_to(player.global_position)
+		var direction_to_player = global_position.direction_to(player.global_position)
 		
-		if distance > 40: 
-			var direction = global_position.direction_to(player.global_position)
-			velocity = direction * speed
+		var desired_velocity = Vector2.ZERO
+		if distance_to_player > stopping_distance:
+			desired_velocity = direction_to_player * speed
+		elif distance_to_player < stopping_distance - 15:
+			desired_velocity = -direction_to_player * speed
+		
+		var separation_vector = Vector2.ZERO
+		var all_enemies = get_tree().get_nodes_in_group("enemy")
+		
+		for ally in all_enemies:
+			if ally != self and is_instance_valid(ally):
+				var distance_to_ally = global_position.distance_to(ally.global_position)
+				if distance_to_ally < separation_distance:
+					var push_direction = ally.global_position.direction_to(global_position)
+					var push_strength = separation_distance - distance_to_ally
+					separation_vector += push_direction * push_strength
+		if desired_velocity != Vector2.ZERO:
+			velocity = (desired_velocity + (separation_vector * 5)).limit_length(speed)
 		else:
-			velocity = Vector2.ZERO 
+			velocity = (separation_vector * 5).limit_length(speed)
 			
-		if not is_stunned and current_attack_cooldown <= 0:
-			var overlapping_bodies = damage_aura.get_overlapping_bodies()
-			
-			print("Enemy attack check: Found ", overlapping_bodies.size(), " things in aura.")
-			
-			for body in overlapping_bodies:
-				if body.is_in_group("player"):
-					print("Enemy sees the Player! Trying to punch...")
-					
-					if body.has_method("take_damage"):
-						print("Punch landed!")
-						body.take_damage(15) 
-						current_attack_cooldown = attack_cooldown
+			if current_attack_cooldown <= 0 and distance_to_player <= attack_range:
+				if player.has_method("take_damage"):
+					player.take_damage(15)
+					current_attack_cooldown = attack_cooldown
+		
 	if not is_stunned:
 		move_and_slide()
 
@@ -67,13 +77,6 @@ func take_damage(damage_amount: int):
 		
 func die():
 	queue_free()
-
-
-func _on_damage_aura_body_entered(body: Node2D) -> void:
-		if body.is_in_group("player"):
-			if body.has_method("take_damage"):
-				body.take_damage(15)
-
 
 func stun(duration: float):
 	if is_stunned: return

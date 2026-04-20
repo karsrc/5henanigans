@@ -56,9 +56,6 @@ animations = [{
 "speed": 10.0
 }]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_oqnd0"]
-radius = 42.0119
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_63m02"]
 bg_color = Color(1, 1, 1, 1)
 
@@ -79,12 +76,6 @@ sprite_frames = SubResource("SpriteFrames_mof8b")
 animation = &"idle"
 autoplay = "idle"
 
-[node name="DamageAura" type="Area2D" parent="." unique_id=975537963]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageAura" unique_id=690418280]
-position = Vector2(2, 9)
-shape = SubResource("CircleShape2D_oqnd0")
-
 [node name="ProgressBar" type="ProgressBar" parent="." unique_id=330291143]
 offset_left = -12.0
 offset_top = -11.0
@@ -97,5 +88,3 @@ show_percentage = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1759117696]
 position = Vector2(1.5, 19.5)
 shape = SubResource("RectangleShape2D_63m02")
-
-[connection signal="body_entered" from="DamageAura" to="." method="_on_damage_aura_body_entered"]
