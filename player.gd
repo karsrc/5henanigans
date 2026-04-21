@@ -8,8 +8,8 @@ extends CharacterBody2D
 
 var direction: Vector2 = Vector2(1,1)
 var speed: int = 280
-var max_hp: int = 200
-var current_hp: int = 200
+var max_hp: int = 160
+var current_hp: int = 160
 var is_attacking: bool = false
 var current_combo: int = 0
 var combo_target: Node2D = null
@@ -20,8 +20,8 @@ var is_using_skill: bool = false
 
 # Skill 1
 var barrage_duration: float = 2.0
-var barrage_hits: int = 25
-var barrage_damage: int = 6
+var barrage_hits: int = 30
+var barrage_damage: int = 8
 var is_barraging: bool = false
 var barrage_cooldown: float = 9.0
 var current_barrage_cooldown: float = 0.0
@@ -33,6 +33,10 @@ var is_sprinting: bool = false
 var qte_in_progress: bool = false
 var black_flash_triggered: bool = false
 var is_in_zone: bool = false
+var cursed_duration: float = 6
+var cursed_cooldown: float = 20
+var current_cursed_cooldown: float = 0
+var is_cursed_enhanced: bool = false
 
 # Skill 3
 var leap_speed: int = 1050
@@ -60,11 +64,9 @@ func _physics_process(_delta: float):
 	
 	# Skill 2 inoput
 	if Input.is_action_just_pressed("skill_2"):
-		if qte_in_progress:
-			black_flash_triggered = true # DETONATE!
-		elif not is_using_skill and current_divergent_cooldown <= 0:
-			perform_divergent_sprint()
-			return
+				if current_cursed_cooldown <= 0:
+					activate_cursed_energy()
+					return
 	
 	if not is_using_skill:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -75,6 +77,9 @@ func _physics_process(_delta: float):
 				perform_barrage()
 				return
 				
+		if current_cursed_cooldown > 0:
+			current_cursed_cooldown -= _delta
+		
 		if Input.is_action_just_pressed("skill_3"):
 			if current_leap_cooldown <= 0:
 				perform_leap()
@@ -136,10 +141,10 @@ func perform_punch():
 				combo_target = body
 				current_combo = 1
 			
-			if is_in_zone:
-				body.take_damage(20)
+			if is_cursed_enhanced:
+				body.take_damage(25) 
 				var shove_dir = global_position.direction_to(body.global_position)
-				body.global_position += shove_dir * 15
+				body.global_position += shove_dir * 18 
 			else:
 				body.take_damage(10)
 			break 
@@ -354,3 +359,14 @@ func perform_leap() -> void:
 		remove_collision_exception_with(enemy)
 	
 	is_using_skill = false
+
+func activate_cursed_energy():
+	is_using_skill = true
+	velocity = Vector2.ZERO
+	current_combo = 0
+	current_cursed_cooldown = cursed_cooldown
+	is_cursed_enhanced = true
+	await get_tree().create_timer(0.4, false, false, true).timeout
+	is_using_skill = false
+	await get_tree().create_timer(cursed_duration, false, false, true).timeout
+	is_cursed_enhanced = false
