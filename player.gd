@@ -42,6 +42,16 @@ var leap_damage: int = 30
 var leap_cooldown: float = 10.0
 var current_leap_cooldown: float = 0.0
 
+
+# Ultimate
+var is_sukuna: bool = false
+var is_domain_active: bool = false
+var ult_duration: float = 15
+var ult_cooldown: float = 60
+var current_ult_cooldown: float = 0
+var dismantle_cooldown: float = 0
+var base_speed: int = 300
+
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	crosshair.z_index = 1000
@@ -53,6 +63,9 @@ func _physics_process(_delta: float):
 	crosshair.global_position = get_global_mouse_position()
 	aim_pivot.look_at(get_global_mouse_position())
 	
+	if current_ult_cooldown > 0: current_ult_cooldown -= _delta
+	if dismantle_cooldown > 0: dismantle_cooldown -= _delta
+	
 	# Tick cooldowns
 	if current_leap_cooldown > 0: current_leap_cooldown -= _delta
 	if current_barrage_cooldown > 0: current_barrage_cooldown -= _delta
@@ -61,6 +74,27 @@ func _physics_process(_delta: float):
 	# Skill 2 inoput
 	if Input.is_action_just_pressed("skill_2"):
 			toggle_cursed_stance()
+			return
+			
+	if is_sukuna:
+		if not is_domain_active:
+			direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+			velocity = direction * speed
+			
+			if Input.is_action_pressed("attack") and dismantle_cooldown <= 0:
+				dismantle_cooldown = 0.15
+				fire_sukuna_slash(false)
+				
+			if Input.is_action_just_pressed("skill_1"):
+				fire_sukuna_slash(true)
+				
+			if Input.is_action_just_pressed("skill_3"):
+				activate_domain_expansion()
+		elif is_domain_active and Input.is_action_just_pressed("skill_2"):
+			fire_fuga()
+			
+			update_animation()
+			move_and_slide()
 			return
 	
 	if not is_using_skill:
@@ -81,7 +115,11 @@ func _physics_process(_delta: float):
 				perform_leap()
 				return
 		
-		# Combo Drop Timer
+		if Input.is_action_just_pressed("skill_4"):
+			transform_sukuna()
+		return
+		
+		# Combo Drop Timer <----- need update LATer!!!!!!
 		if current_combo > 0 and not is_attacking:
 			time_since_last_hit += _delta
 			if time_since_last_hit >= combo_drop_time:
@@ -366,3 +404,23 @@ func toggle_cursed_stance():
 
 	await get_tree().create_timer(0.4, false, false, true).timeout
 	is_using_skill = false
+
+func transform_sukuna():
+	is_using_skill = true
+	velocity = Vector2.ZERO
+	current_ult_cooldown = ult_cooldown
+	is_sukuna = true
+	Engine.time_scale = 0.05
+	shake_camera(25)
+	current_hp = max_hp
+	health_bar.value = current_hp
+	await get_tree().create_timer(0.05, true, false, true).timeout
+	Engine.time_scale = 1
+	is_using_skill = false
+	await get_tree().create_timer(ult_duration, false, false, true).timeout
+	end_sukuna()
+	
+func end_sukuna():
+	if not is_sukuna: return
+	is_sukuna = false
+	is_domain_active = false
