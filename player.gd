@@ -424,3 +424,29 @@ func end_sukuna():
 	if not is_sukuna: return
 	is_sukuna = false
 	is_domain_active = false
+
+func fire_sukuna_slash(is_heavy: bool):
+	is_attacking = true
+	
+	var proj = Area2D.new()
+	var collision = CollisionShape2D.new()
+	var shape = RectangleShape2D.new()
+	
+	shape.size = Vector2(100, 100) if is_heavy else Vector2(20, 60)
+	collision.shape = shape
+	proj.add_child(collision)
+	
+	#TEXTURE NEEDED here
+	var sprite = Sprite2D.new()
+	sprite.name = "Texture"
+	proj.add_child(sprite)
+	get_tree().current_scene.add_child(proj)
+	proj.global_position = global_position
+	var dir = global_position.direction_to(get_global_mouse_position())
+	proj.rotation = dir.angle()
+	
+	proj.body_entered.connect(func(body):
+		if body.is_in_group("enemy") and body.has_method("take_damage"):
+			body.take_damage(100 if is_heavy else 15)
+			var shove = dir * (150 if is_heavy else 20)
+	) 
