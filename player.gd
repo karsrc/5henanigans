@@ -33,9 +33,6 @@ var is_sprinting: bool = false
 var qte_in_progress: bool = false
 var black_flash_triggered: bool = false
 var is_in_zone: bool = false
-var cursed_duration: float = 6
-var cursed_cooldown: float = 20
-var current_cursed_cooldown: float = 0
 var is_cursed_enhanced: bool = false
 
 # Skill 3
@@ -44,7 +41,6 @@ var leap_duration: float = 0.4
 var leap_damage: int = 30
 var leap_cooldown: float = 10.0
 var current_leap_cooldown: float = 0.0
-
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -64,9 +60,8 @@ func _physics_process(_delta: float):
 	
 	# Skill 2 inoput
 	if Input.is_action_just_pressed("skill_2"):
-				if current_cursed_cooldown <= 0:
-					activate_cursed_energy()
-					return
+			toggle_cursed_stance()
+			return
 	
 	if not is_using_skill:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -77,8 +72,9 @@ func _physics_process(_delta: float):
 				perform_barrage()
 				return
 				
-		if current_cursed_cooldown > 0:
-			current_cursed_cooldown -= _delta
+		if Input.is_action_just_pressed("skill_2"):
+			toggle_cursed_stance()
+			return
 		
 		if Input.is_action_just_pressed("skill_3"):
 			if current_leap_cooldown <= 0:
@@ -133,6 +129,8 @@ func perform_punch():
 	var hit_enemy = false
 	var overlapping_bodies = attack_area.get_overlapping_bodies()
 	
+	var attack_recovery = 0.45 if is_cursed_enhanced else 0.3
+	
 	for body in overlapping_bodies:
 		if body.is_in_group("enemy") and body.has_method("take_damage"):
 			hit_enemy = true
@@ -152,7 +150,7 @@ func perform_punch():
 	if not hit_enemy:
 		current_combo = 0
 		combo_target = null
-	await get_tree().create_timer(0.3, false, false, true).timeout
+	await get_tree().create_timer(attack_recovery, false, false, true).timeout
 	is_attacking = false 
 
 func update_animation():
@@ -360,13 +358,11 @@ func perform_leap() -> void:
 	
 	is_using_skill = false
 
-func activate_cursed_energy():
+func toggle_cursed_stance():
 	is_using_skill = true
 	velocity = Vector2.ZERO
 	current_combo = 0
-	current_cursed_cooldown = cursed_cooldown
-	is_cursed_enhanced = true
+	is_cursed_enhanced = !is_cursed_enhanced
+
 	await get_tree().create_timer(0.4, false, false, true).timeout
 	is_using_skill = false
-	await get_tree().create_timer(cursed_duration, false, false, true).timeout
-	is_cursed_enhanced = false

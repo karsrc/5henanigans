@@ -149,10 +149,10 @@ shape = SubResource("RectangleShape2D_2hs0m")
 layer = 100
 
 [node name="ProgressBar" type="ProgressBar" parent="CanvasLayer" unique_id=97861987]
-offset_left = 45.0
-offset_top = 976.0
-offset_right = 588.0
-offset_bottom = 1013.0
+offset_left = 100.0
+offset_top = 933.0
+offset_right = 302.0
+offset_bottom = 955.0
 theme_override_styles/background = SubResource("StyleBoxFlat_2hs0m")
 theme_override_styles/fill = SubResource("StyleBoxFlat_1jxqw")
 show_percentage = false
