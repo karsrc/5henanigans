@@ -46,6 +46,7 @@ var current_leap_cooldown: float = 0.0
 # Ultimate
 var is_sukuna: bool = false
 var is_domain_active: bool = false
+var domain_tick_timer: float = 0
 var ult_duration: float = 15
 var ult_cooldown: float = 60
 var current_ult_cooldown: float = 0
@@ -77,6 +78,20 @@ func _physics_process(_delta: float):
 			return
 			
 	if is_sukuna:
+		if is_domain_active:
+			domain_tick_timer += _delta
+			if domain_tick_timer >= 1:
+				domain_tick_timer = 0
+				shake_camera(5)
+				var all_enemies = get_tree().get_nodes_in_group("enemy")
+				for enemy in all_enemies:
+					if is_instance_valid(enemy) and enemy.has_method("take_damage"):
+						enemy.take_damage(15)
+		if Input.is_action_just_pressed("skill_2"):
+			fire_fuga()
+			return
+		
+		
 		if not is_domain_active:
 			direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 			velocity = direction * speed
@@ -424,6 +439,10 @@ func end_sukuna():
 	if not is_sukuna: return
 	is_sukuna = false
 	is_domain_active = false
+	speed = base_speed
+	var shrine = get_node_or_null("MalevolentShrineVisual")
+	if shrine:
+		shrine.queue_free()
 
 func fire_sukuna_slash(is_heavy: bool):
 	is_attacking = true
@@ -450,3 +469,53 @@ func fire_sukuna_slash(is_heavy: bool):
 			body.take_damage(100 if is_heavy else 15)
 			var shove = dir * (150 if is_heavy else 20)
 	) 
+
+func activate_domain_expansion():
+	if is_domain_active: return
+	is_domain_active = true
+	is_using_skill = true
+	velocity = Vector2.ZERO
+	domain_tick_timer = 0
+	Engine.time_scale = 0.05
+	shake_camera(20)
+	
+	var shrine = Sprite2D.new()
+	shrine.texture = load("res://icon.svg")
+	shrine.scale = Vector2(3, 8)
+	shrine.modulate = Color(0,0 ,0, 0.8)
+	shrine.position = Vector2(0, -100)
+	shrine.z_index = 1
+	shrine.name = "MalevolentShrineVisual"
+	add_child(shrine)
+	await get_tree().create_timer(0.05, true, false, true).timeout
+	Engine.time_scale = 1
+	is_using_skill = false
+	
+func fire_fuga():
+	is_using_skill = true
+	velocity = Vector2.ZERO
+	Engine.time_scale = 0.05
+	$AnimatedSprite2D.modulate = Color(1, 0.5, 0)
+	var blast = ColorRect.new()
+	blast.color = Color(1, 0.2, 0, 0)
+	blast.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	$CanvasLayer.add_child(blast)
+	
+	await get_tree().create_timer(0.05, true, false, true).timeout
+	
+	Engine.time_scale = 1
+	shake_camera(20)
+	blast.color = Color(1, 0.8, 0, 1)
+	
+	var all_enemies = get_tree().get_nodes_in_group("enemy")
+	for enemy in all_enemies:
+		if is_instance_valid(enemy) and enemy.has_method("take_damage"):
+			enemy.take_damage(9999)
+			
+	var tween = get_tree().create_tween()
+	tween.tween_property(blast, "color", Color(1, 0.2, 0, 0), 1)
+	tween.tween_callback(blast.queue_free)
+	await get_tree().create_timer(1, false, false, true).timeout
+	is_using_skill = false
+	
+	end_sukuna()
