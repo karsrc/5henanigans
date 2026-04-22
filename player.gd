@@ -5,6 +5,7 @@ extends CharacterBody2D
 @onready var aim_spirte = $AimPivot/AimSprite
 @onready var attack_area = $AimPivot/AttackArea
 @onready var health_bar = $CanvasLayer/ProgressBar
+@onready var awakening_bar = $CanvasLayer/AwakeningBar
 
 var direction: Vector2 = Vector2(1,1)
 var speed: int = 280
@@ -48,10 +49,10 @@ var is_sukuna: bool = false
 var is_domain_active: bool = false
 var domain_tick_timer: float = 0
 var ult_duration: float = 15
-var ult_cooldown: float = 60
-var current_ult_cooldown: float = 0
 var dismantle_cooldown: float = 0
 var base_speed: int = 300
+var max_ult_charge: int = 2000
+var current_ult_charge: int = 0
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -59,40 +60,36 @@ func _ready() -> void:
 	current_hp = max_hp
 	health_bar.max_value = max_hp
 	health_bar.value = current_hp
+	awakening_bar.max_value = max_ult_charge
+	awakening_bar.value = current_ult_charge
 
 func _physics_process(_delta: float):
 	crosshair.global_position = get_global_mouse_position()
 	aim_pivot.look_at(get_global_mouse_position())
 	
-	if current_ult_cooldown > 0: current_ult_cooldown -= _delta
 	if dismantle_cooldown > 0: dismantle_cooldown -= _delta
 	
-	# Tick cooldowns
 	if current_leap_cooldown > 0: current_leap_cooldown -= _delta
 	if current_barrage_cooldown > 0: current_barrage_cooldown -= _delta
 	if current_divergent_cooldown > 0: current_divergent_cooldown -= _delta
 	
-	# Skill 2 inoput
-	if Input.is_action_just_pressed("skill_2"):
-			toggle_cursed_stance()
-			return
-			
+	# SUKUNA LOGIC
 	if is_sukuna:
 		if is_domain_active:
 			domain_tick_timer += _delta
-			if domain_tick_timer >= 1:
-				domain_tick_timer = 0
+			if domain_tick_timer >= 1.0:
+				domain_tick_timer = 0.0
 				shake_camera(5)
 				var all_enemies = get_tree().get_nodes_in_group("enemy")
 				for enemy in all_enemies:
 					if is_instance_valid(enemy) and enemy.has_method("take_damage"):
 						enemy.take_damage(15)
-		if Input.is_action_just_pressed("skill_2"):
-			fire_fuga()
-			return
-		
-		
-		if not is_domain_active:
+						
+			if Input.is_action_just_pressed("skill_2"):
+				fire_fuga()
+				return
+				
+		else: 
 			direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 			velocity = direction * speed
 			
@@ -105,13 +102,17 @@ func _physics_process(_delta: float):
 				
 			if Input.is_action_just_pressed("skill_3"):
 				activate_domain_expansion()
-		elif is_domain_active and Input.is_action_just_pressed("skill_2"):
-			fire_fuga()
-			
-			update_animation()
-			move_and_slide()
-			return
-	
+				
+		update_animation()
+		move_and_slide()
+		return 
+		
+		
+	#  YUJI LOGIC
+	if Input.is_action_just_pressed("skill_2"):
+		toggle_cursed_stance()
+		return
+		
 	if not is_using_skill:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = direction * speed
@@ -121,25 +122,23 @@ func _physics_process(_delta: float):
 				perform_barrage()
 				return
 				
-		if Input.is_action_just_pressed("skill_2"):
-			toggle_cursed_stance()
-			return
-		
 		if Input.is_action_just_pressed("skill_3"):
 			if current_leap_cooldown <= 0:
 				perform_leap()
 				return
 		
 		if Input.is_action_just_pressed("skill_4"):
-			transform_sukuna()
-		return
+			if current_ult_charge >= max_ult_charge:
+				transform_sukuna()
+				return 
 		
-		# Combo Drop Timer <----- need update LATer!!!!!!
+		# Combo Drop Timer. Update this next !
 		if current_combo > 0 and not is_attacking:
 			time_since_last_hit += _delta
 			if time_since_last_hit >= combo_drop_time:
 				current_combo = 0
 				combo_target = null
+				
 		if Input.is_action_pressed("attack") and not is_attacking:
 			perform_punch()
 			
@@ -149,7 +148,6 @@ func _physics_process(_delta: float):
 	
 	update_animation()
 	move_and_slide()
-
 func die():
 	get_tree().reload_current_scene()
 	
@@ -194,10 +192,12 @@ func perform_punch():
 			
 			if is_cursed_enhanced:
 				body.take_damage(25) 
+				add_ult_charge(25)
 				var shove_dir = global_position.direction_to(body.global_position)
 				body.global_position += shove_dir * 18 
 			else:
 				body.take_damage(10)
+				add_ult_charge(25)
 			break 
 			
 	if not hit_enemy:
@@ -248,6 +248,7 @@ func perform_barrage():
 			if body.is_in_group("enemy") and body.has_method("take_damage"):
 				enemies_in_range += 1
 				body.take_damage(barrage_damage)
+				add_ult_charge(barrage_damage)
 				
 				if body.has_method("stun"): body.stun(0.4) 
 				
@@ -382,6 +383,7 @@ func perform_leap() -> void:
 			if body.is_in_group("enemy") and body.has_method("take_damage"):
 				if not enemies_hit.has(body):
 					body.take_damage(leap_damage)
+					add_ult_charge(leap_damage)
 					if body.has_method("stun"): body.stun(1.5)
 					enemies_hit.append(body)
 					hit_someone = true 
@@ -394,6 +396,7 @@ func perform_leap() -> void:
 		if distance < 80:
 			if enemy.has_method("take_damage") and not enemies_hit.has(enemy):
 				enemy.take_damage(25) 
+				add_ult_charge(25)
 			if enemy.has_method("stun"): enemy.stun(1.5)
 			hit_someone = true
 			
@@ -423,7 +426,8 @@ func toggle_cursed_stance():
 func transform_sukuna():
 	is_using_skill = true
 	velocity = Vector2.ZERO
-	current_ult_cooldown = ult_cooldown
+	current_ult_charge = 0
+	awakening_bar.value = 0
 	is_sukuna = true
 	Engine.time_scale = 0.05
 	shake_camera(25)
@@ -519,3 +523,14 @@ func fire_fuga():
 	is_using_skill = false
 	
 	end_sukuna()
+
+func add_ult_charge(amount: int):
+	if is_sukuna or current_ult_charge >= max_ult_charge:
+		return
+		
+	current_ult_charge += amount
+	awakening_bar.value = current_ult_charge
+	
+	if current_ult_charge >= max_ult_charge:
+		current_ult_charge = max_ult_charge
+		awakening_bar.value = current_ult_charge

@@ -101,6 +101,12 @@ bg_color = Color(1, 1, 1, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1jxqw"]
 bg_color = Color(0, 1, 0, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dw050"]
+bg_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b26j0"]
+bg_color = Color(1, 0, 0, 1)
+
 [node name="Player" type="CharacterBody2D" unique_id=357666152 groups=["player"]]
 collision_mask = 3
 script = ExtResource("1_onrkg")
@@ -151,10 +157,19 @@ layer = 100
 [node name="ProgressBar" type="ProgressBar" parent="CanvasLayer" unique_id=97861987]
 offset_left = 100.0
 offset_top = 933.0
-offset_right = 302.0
+offset_right = 455.0
 offset_bottom = 955.0
 theme_override_styles/background = SubResource("StyleBoxFlat_2hs0m")
 theme_override_styles/fill = SubResource("StyleBoxFlat_1jxqw")
+show_percentage = false
+
+[node name="AwakeningBar" type="ProgressBar" parent="CanvasLayer" unique_id=1760138839]
+offset_left = 100.0
+offset_top = 903.0
+offset_right = 410.0
+offset_bottom = 925.0
+theme_override_styles/background = SubResource("StyleBoxFlat_dw050")
+theme_override_styles/fill = SubResource("StyleBoxFlat_b26j0")
 show_percentage = false
 
 [node name="TimingRing" type="Sprite2D" parent="." unique_id=1574927490]
