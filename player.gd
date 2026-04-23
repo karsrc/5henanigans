@@ -43,6 +43,12 @@ var leap_damage: int = 30
 var leap_cooldown: float = 10.0
 var current_leap_cooldown: float = 0.0
 
+# Special
+var manji_cooldown: float = 5
+var current_manji_cooldown: float = 0
+var manji_damage: int = 15
+
+
 
 # Ultimate
 var is_sukuna: bool = false
@@ -64,6 +70,7 @@ func _ready() -> void:
 	awakening_bar.value = current_ult_charge
 
 func _physics_process(_delta: float):
+	
 	crosshair.global_position = get_global_mouse_position()
 	aim_pivot.look_at(get_global_mouse_position())
 	
@@ -72,6 +79,10 @@ func _physics_process(_delta: float):
 	if current_leap_cooldown > 0: current_leap_cooldown -= _delta
 	if current_barrage_cooldown > 0: current_barrage_cooldown -= _delta
 	if current_divergent_cooldown > 0: current_divergent_cooldown -= _delta
+	if current_manji_cooldown > 0: current_manji_cooldown -= _delta
+	
+	if Input.is_key_pressed(KEY_9):
+		add_ult_charge(max_ult_charge)
 	
 	# SUKUNA LOGIC
 	if is_sukuna:
@@ -109,6 +120,12 @@ func _physics_process(_delta: float):
 		
 		
 	#  YUJI LOGIC
+	
+	if Input.is_key_pressed(KEY_R):
+		if current_manji_cooldown <= 0:
+			perform_manji_kick()
+			return
+	
 	if Input.is_action_just_pressed("skill_2"):
 		toggle_cursed_stance()
 		return
@@ -354,6 +371,45 @@ func enter_the_zone():
 	is_in_zone = false
 	$AnimatedSprite2D.modulate = Color(1, 1, 1) 
 
+func perform_manji_kick():
+	is_using_skill = true
+	velocity = Vector2.ZERO
+	current_combo = 0
+	combo_target = null
+	current_manji_cooldown = manji_cooldown
+	
+	is_invincible = true
+	$AnimatedSprite2D.modulate = Color(0.6, 0.8, 1)
+	await get_tree().create_timer(0.15, false, false, true).timeout
+	var hit_someone = false
+	var final_damage = manji_damage
+	
+	if is_cursed_enhanced:
+		final_damage = manji_damage * 2
+		
+	
+	var all_enemies = get_tree().get_nodes_in_group("enemy")
+	for enemy in all_enemies:
+		if is_instance_valid("enemy"):
+			var distance = global_position.distance_to(enemy.global_position)
+			if distance <= 75:
+				if enemy.has_method("take_damage"):
+					enemy.take_damage(final_damage)
+					add_ult_charge(final_damage)
+				if enemy.has_method("stun"):
+					enemy.stun(0.8)
+				var shove_dir = global_position.direction_to(enemy.global_position)
+				if shove_dir == Vector2.ZERO: shove_dir = Vector2.RIGHT
+				enemy.global_position += shove_dir * 40
+				hit_someone = true
+	if hit_someone:
+		trigger_hit_stop()
+		shake_camera(12)
+		
+	await get_tree().create_timer(0.25, false, false, true).timeout
+	is_invincible = false
+	$AnimatedSprite2D.modulate = Color (1, 1, 1,1)
+	is_using_skill = false
 func perform_leap() -> void:
 	is_using_skill = true
 	is_attacking = false
