@@ -18,6 +18,11 @@ var time_since_last_hit: float = 0
 var combo_drop_time: float = 1
 var is_invincible: bool = false
 var is_using_skill: bool = false
+var is_blocking: bool = false
+var is_dashing: bool = false
+var dash_speed: int = 700
+var dash_cooldown: float = 1.2
+var current_dash_cooldown: float = 0
 
 # Skill 1
 var barrage_duration: float = 2.0
@@ -71,20 +76,19 @@ func _ready() -> void:
 	awakening_bar.value = current_ult_charge
 
 func _physics_process(_delta: float):
-	
 	crosshair.global_position = get_global_mouse_position()
 	aim_pivot.look_at(get_global_mouse_position())
 	
+	# --- TICK COOLDOWNS ---
 	if dismantle_cooldown > 0: dismantle_cooldown -= _delta
-	
 	if current_leap_cooldown > 0: current_leap_cooldown -= _delta
 	if current_barrage_cooldown > 0: current_barrage_cooldown -= _delta
-	if current_divergent_cooldown > 0: current_divergent_cooldown -= _delta
+	if current_dash_cooldown > 0: current_dash_cooldown -= _delta
 	if current_manji_cooldown > 0: current_manji_cooldown -= _delta
 	
 	if Input.is_key_pressed(KEY_9):
 		add_ult_charge(max_ult_charge)
-	
+		
 	# SUKUNA LOGIC
 	if is_sukuna:
 		if is_domain_active:
@@ -101,7 +105,7 @@ func _physics_process(_delta: float):
 				fire_fuga()
 				return
 				
-		else: 
+		else:
 			direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 			velocity = direction * speed
 			
@@ -117,24 +121,34 @@ func _physics_process(_delta: float):
 				
 		update_animation()
 		move_and_slide()
-		return 
+		return
 		
-		
-	#  YUJI LOGIC
-	
-	if Input.is_key_pressed(KEY_R):
-		if current_manji_cooldown <= 0:
-			enter_manji_stance()
-			return
-	
+	# YUJI LOGIC
+	# Skill 2 
 	if Input.is_action_just_pressed("skill_2"):
 		toggle_cursed_stance()
 		return
 		
+	# R Special 
+	if Input.is_key_pressed(KEY_R):
+		if current_manji_cooldown <= 0:
+			enter_manji_stance()
+			return
+			
 	if not is_using_skill:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		velocity = direction * speed
 		
+		if Input.is_key_pressed(KEY_F):
+			is_blocking = true
+			velocity = direction * (speed * 0.3)
+		else:
+			is_blocking = false
+			velocity = direction * speed
+			
+		if Input.is_key_pressed(KEY_SPACE) and current_dash_cooldown <= 0:
+			perform_dash()
+			return 
+			
 		if Input.is_action_just_pressed("skill_1"):
 			if current_barrage_cooldown <= 0:
 				perform_barrage()
@@ -144,13 +158,12 @@ func _physics_process(_delta: float):
 			if current_leap_cooldown <= 0:
 				perform_leap()
 				return
-		
+				
 		if Input.is_action_just_pressed("skill_4"):
 			if current_ult_charge >= max_ult_charge:
 				transform_sukuna()
-				return 
-		
-		# Combo Drop Timer. Update this next !
+				return
+				
 		if current_combo > 0 and not is_attacking:
 			time_since_last_hit += _delta
 			if time_since_last_hit >= combo_drop_time:
@@ -163,7 +176,7 @@ func _physics_process(_delta: float):
 	if is_barraging:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = direction * (speed * 0.6) 
-	
+		
 	update_animation()
 	move_and_slide()
 func die():
@@ -177,6 +190,11 @@ func take_damage(damage_amount: int) -> void:
 	
 	if is_using_skill or is_invincible:
 		return
+	if is_blocking:
+		damage_amount = int(damage_amount * 0.2)
+		shake_camera(3)
+	current_hp -= damage_amount
+	health_bar.value = current_hp
 		
 	current_hp -= damage_amount
 	health_bar.value = current_hp
@@ -189,6 +207,26 @@ func take_damage(damage_amount: int) -> void:
 		await get_tree().create_timer(0.5, false, false, true).timeout
 		$AnimatedSprite2D.modulate = Color(1, 1, 1, 1) 
 		is_invincible = false
+
+func perform_dash():
+	is_using_skill = true 
+	is_invincible = true
+	current_dash_cooldown = dash_cooldown
+	
+	var dash_dir = direction
+	if dash_dir == Vector2.ZERO:
+		dash_dir = global_position.direction_to(get_global_mouse_position())
+		
+	velocity = dash_dir.normalized() * dash_speed
+	$AnimatedSprite2D.modulate = Color(1, 1, 1, 0.4) 
+	
+	await get_tree().create_timer(0.2, false, false, true).timeout 
+	
+	velocity = Vector2.ZERO 
+	is_using_skill = false
+	is_invincible = false
+	
+	$AnimatedSprite2D.modulate = Color(1, 1, 1, 1)
 
 func shake_camera(intensity: float):
 	var camera = $Camera2D
@@ -396,7 +434,6 @@ func trigger_manji_counter():
 	$AnimatedSprite2D.modulate = Color(1,1,11)
 	trigger_hit_stop()
 	shake_camera(15)
-	var hit_someone = false
 	var final_damage = manji_damage
 	if is_cursed_enhanced: final_damage = manji_damage * 2
 	
