@@ -46,7 +46,8 @@ var current_leap_cooldown: float = 0.0
 # Special
 var manji_cooldown: float = 5
 var current_manji_cooldown: float = 0
-var manji_damage: int = 15
+var is_countering: bool = false
+var manji_damage: int = 25
 
 
 
@@ -123,7 +124,7 @@ func _physics_process(_delta: float):
 	
 	if Input.is_key_pressed(KEY_R):
 		if current_manji_cooldown <= 0:
-			perform_manji_kick()
+			enter_manji_stance()
 			return
 	
 	if Input.is_action_just_pressed("skill_2"):
@@ -169,6 +170,11 @@ func die():
 	get_tree().reload_current_scene()
 	
 func take_damage(damage_amount: int) -> void:
+	if is_countering:
+		is_countering = false
+		trigger_manji_counter()
+		return
+	
 	if is_using_skill or is_invincible:
 		return
 		
@@ -181,7 +187,7 @@ func take_damage(damage_amount: int) -> void:
 		is_invincible = true
 		$AnimatedSprite2D.modulate = Color(1, 0, 0, 0.5) 
 		await get_tree().create_timer(0.5, false, false, true).timeout
-		$AnimatedSprite2D.modulate = Color(1, 1, 1, 1) if not is_in_zone else Color(0.8, 0.2, 0.2)
+		$AnimatedSprite2D.modulate = Color(1, 1, 1, 1) 
 		is_invincible = false
 
 func shake_camera(intensity: float):
@@ -371,45 +377,45 @@ func enter_the_zone():
 	is_in_zone = false
 	$AnimatedSprite2D.modulate = Color(1, 1, 1) 
 
-func perform_manji_kick():
+func enter_manji_stance():
 	is_using_skill = true
 	velocity = Vector2.ZERO
 	current_combo = 0
-	combo_target = null
 	current_manji_cooldown = manji_cooldown
-	
-	is_invincible = true
+	is_countering = true
 	$AnimatedSprite2D.modulate = Color(0.6, 0.8, 1)
-	await get_tree().create_timer(0.15, false, false, true).timeout
+	await get_tree().create_timer(0.4, false, false, true).timeout
+	
+	if is_countering:
+		is_countering = false
+		is_using_skill = false
+		$AnimatedSprite2D.modulate = Color(1,1,1,1)
+
+func trigger_manji_counter():
+	is_invincible = true
+	$AnimatedSprite2D.modulate = Color(1,1,11)
+	trigger_hit_stop()
+	shake_camera(15)
 	var hit_someone = false
 	var final_damage = manji_damage
-	
-	if is_cursed_enhanced:
-		final_damage = manji_damage * 2
-		
+	if is_cursed_enhanced: final_damage = manji_damage * 2
 	
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
 	for enemy in all_enemies:
-		if is_instance_valid("enemy"):
-			var distance = global_position.distance_to(enemy.global_position)
-			if distance <= 75:
+		if is_instance_valid(enemy):
+			if global_position.distance_to(enemy.global_position) <= 85:
 				if enemy.has_method("take_damage"):
 					enemy.take_damage(final_damage)
-					add_ult_charge(final_damage)
-				if enemy.has_method("stun"):
-					enemy.stun(0.8)
+					add_ult_charge(final_damage *2)
+				if enemy.has_method("stun"): enemy.stun(1)
+				
 				var shove_dir = global_position.direction_to(enemy.global_position)
 				if shove_dir == Vector2.ZERO: shove_dir = Vector2.RIGHT
-				enemy.global_position += shove_dir * 40
-				hit_someone = true
-	if hit_someone:
-		trigger_hit_stop()
-		shake_camera(12)
-		
-	await get_tree().create_timer(0.25, false, false, true).timeout
+				enemy.global_position += shove_dir * 50
+	await get_tree().create_timer(0.3, false, false, true).timeout
 	is_invincible = false
-	$AnimatedSprite2D.modulate = Color (1, 1, 1,1)
 	is_using_skill = false
+
 func perform_leap() -> void:
 	is_using_skill = true
 	is_attacking = false
