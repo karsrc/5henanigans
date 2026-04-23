@@ -193,8 +193,6 @@ func take_damage(damage_amount: int) -> void:
 	if is_blocking:
 		damage_amount = int(damage_amount * 0.2)
 		shake_camera(3)
-	current_hp -= damage_amount
-	health_bar.value = current_hp
 		
 	current_hp -= damage_amount
 	health_bar.value = current_hp
@@ -571,7 +569,12 @@ func fire_sukuna_slash(is_heavy: bool):
 		if body.is_in_group("enemy") and body.has_method("take_damage"):
 			body.take_damage(100 if is_heavy else 15)
 			var shove = dir * (150 if is_heavy else 20)
+			body.global_position += shove
 	) 
+	var travel_distance = dir * (800 if is_heavy else 400)
+	var tween = get_tree().create_tween()
+	tween.tween_property(proj, "global_position", proj.global_position + travel_distance, 0.2)
+	tween.tween_callback(proj.queue_free)
 
 func activate_domain_expansion():
 	if is_domain_active: return
@@ -587,7 +590,7 @@ func activate_domain_expansion():
 	shrine.scale = Vector2(3, 8)
 	shrine.modulate = Color(0,0 ,0, 0.8)
 	shrine.position = Vector2(0, -100)
-	shrine.z_index = 1
+	shrine.z_index = -1
 	shrine.name = "MalevolentShrineVisual"
 	add_child(shrine)
 	await get_tree().create_timer(0.05, true, false, true).timeout

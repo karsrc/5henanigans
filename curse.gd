@@ -51,7 +51,7 @@ func _physics_process(delta: float):
 			
 			if current_attack_cooldown <= 0 and distance_to_player <= attack_range:
 				if player.has_method("take_damage"):
-					player.take_damage(15)
+					player.take_damage(5)
 					current_attack_cooldown = attack_cooldown
 		
 	if not is_stunned:
