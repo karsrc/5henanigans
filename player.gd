@@ -201,12 +201,18 @@ func _physics_process(_delta: float):
 func die():
 	get_tree().reload_current_scene()
 	
-func take_damage(damage_amount: int) -> void:
-	if is_countering:
-		is_countering = false
-		trigger_manji_counter()
-		return
+func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, attacker_pos: Vector2 = Vector2.ZERO):
 	
+	if is_countering:
+		trigger_manji_kick(attacker_pos)
+		
+		return 
+		
+	if is_blocking:
+		$AudioManager.play_random_sound($AudioManager.blocks)
+		velocity = knockback_force * 0.5 
+		move_and_slide()
+		return 
 	if is_using_skill or is_invincible:
 		return
 	if is_blocking:
@@ -304,8 +310,13 @@ func perform_punch():
 		$AimPivot/AimSprite.play("swipe2")
 		$AimPivot/AimSprite.flip_v = true
 
+	await get_tree().create_timer(0.15, false, false, true).timeout
+	
+	if is_attacking: 
+		execute_hitbox()
+
 func update_animation():
-	if is_attacking or is_leaping or is_barraging or is_dashing or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
+	if is_attacking or is_leaping or is_barraging or is_countering or is_dashing or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
 		return 
 	var anim = "" 
 	
@@ -351,12 +362,12 @@ func _on_frame_changed():
 		if current_frame in [0, 2, 4, 6]:
 			$AudioManager.play_random_sound($AudioManager.footsteps_walk)
 	if current_anim.begins_with("m1"):
-		print("Punch animation playing,Current Frame: ", current_frame)
 		
 		if current_frame == 1: 
-			print("execute_hitbox() now!")
 			execute_hitbox()
-		
+	if current_anim.begins_with("manji-kick"):
+		if current_frame == 0: 
+			execute_hitbox()
 func execute_hitbox():
 	var hit_enemy = false
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
@@ -483,36 +494,29 @@ func enter_manji_stance():
 	current_combo = 0
 	current_manji_cooldown = manji_cooldown
 	is_countering = true
-	$AnimatedSprite2D.modulate = Color(0.6, 0.8, 1)
+	
+	var suffix = "_ce" if is_cursed_enhanced else ""
+	
+	$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
+	$AnimatedSprite2D.play("manji-stance" + suffix)
+	
 	await get_tree().create_timer(0.4, false, false, true).timeout
 	
 	if is_countering:
 		is_countering = false
 		is_using_skill = false
-		$AnimatedSprite2D.modulate = Color(1,1,1,1)
 
-func trigger_manji_counter():
-	is_invincible = true
-	$AnimatedSprite2D.modulate = Color(1,1,11)
-	trigger_hit_stop()
-	shake_camera(15)
-	var final_damage = manji_damage
-	if is_cursed_enhanced: final_damage = manji_damage * 2
+func trigger_manji_kick(attacker_pos: Vector2):
+	is_countering = false
 	
-	var all_enemies = get_tree().get_nodes_in_group("enemy")
-	for enemy in all_enemies:
-		if is_instance_valid(enemy):
-			if global_position.distance_to(enemy.global_position) <= 85:
-				if enemy.has_method("take_damage"):
-					enemy.take_damage(final_damage)
-					add_ult_charge(final_damage *2)
-				if enemy.has_method("stun"): enemy.stun(1)
-				
-				var shove_dir = global_position.direction_to(enemy.global_position)
-				if shove_dir == Vector2.ZERO: shove_dir = Vector2.RIGHT
-				enemy.global_position += shove_dir * 50
-	await get_tree().create_timer(0.3, false, false, true).timeout
-	is_invincible = false
+	$AnimatedSprite2D.flip_h = attacker_pos.x < global_position.x
+	
+	$AudioManager.play_random_sound($AudioManager.heavy_whiffs, 0.8, 0.1)
+	
+	var suffix = "_ce" if is_cursed_enhanced else ""
+	$AnimatedSprite2D.play("manji-kick" + suffix)
+	
+	await $AnimatedSprite2D.animation_finished
 	is_using_skill = false
 
 func perform_leap() -> void:
