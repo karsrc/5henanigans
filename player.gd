@@ -78,6 +78,7 @@ func _ready() -> void:
 	awakening_bar.value = current_ult_charge
 	$AnimatedSprite2D.frame_changed.connect(_on_frame_changed)
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
+	$AimPivot/AimSprite.hide()
 
 func _physics_process(_delta: float):
 	crosshair.global_position = get_global_mouse_position()
@@ -275,6 +276,15 @@ func perform_punch():
 		
 	$AnimatedSprite2D.play(anim_to_play)
 	$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
+	
+	$AimPivot/AimSprite.show() 
+	
+	if current_combo == 1 or current_combo == 3:
+		$AimPivot/AimSprite.play("swipe1")
+		$AimPivot/AimSprite.flip_v = false
+	elif current_combo == 2:
+		$AimPivot/AimSprite.play("swipe2")
+		$AimPivot/AimSprite.flip_v = true
 
 func update_animation():
 	if is_attacking or is_leaping or is_barraging or is_dashing:
@@ -361,6 +371,7 @@ func _on_animation_finished():
 	var anim = $AnimatedSprite2D.animation
 	if anim.begins_with("m1"):
 		is_attacking = false
+		$AimPivot/AimSprite.hide()
 
 func trigger_hit_stop():
 	Engine.time_scale = 0.05
