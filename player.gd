@@ -212,6 +212,7 @@ func take_damage(damage_amount: int) -> void:
 
 func perform_dash():
 	is_using_skill = true 
+	is_dashing = true 
 	is_invincible = true
 	current_dash_cooldown = dash_cooldown
 	
@@ -220,15 +221,20 @@ func perform_dash():
 		dash_dir = global_position.direction_to(get_global_mouse_position())
 		
 	velocity = dash_dir.normalized() * dash_speed
-	$AnimatedSprite2D.modulate = Color(1, 1, 1, 0.4) 
 	
-	await get_tree().create_timer(0.2, false, false, true).timeout 
+	var anim_name = "dash-up" if dash_dir.y < 0 else "dash"
+	if is_cursed_enhanced:
+		anim_name += "_ce"
+		
+	$AnimatedSprite2D.play(anim_name)
+	$AnimatedSprite2D.flip_h = dash_dir.x < 0
+	
+	await $AnimatedSprite2D.animation_finished 
 	
 	velocity = Vector2.ZERO 
 	is_using_skill = false
+	is_dashing = false 
 	is_invincible = false
-	
-	$AnimatedSprite2D.modulate = Color(1, 1, 1, 1)
 
 func shake_camera(intensity: float):
 	var camera = $Camera2D
@@ -266,39 +272,18 @@ func perform_punch():
 	$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
 
 func update_animation():
+	if is_attacking or is_leaping or is_barraging or is_dashing:
+		return
+		
 	var anim_name = "idle"
 	var flip = false
 	var mouse_pos = get_global_mouse_position()
-	var facing_front = mouse_pos.y > global_position.y 
 	
-	if is_leaping:
-		anim_name = "knife-leap"
-		$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
-		return
-		
-	elif is_barraging:
-		anim_name = "barrage"
-		flip = mouse_pos.x < global_position.x
-	elif is_dashing:
-		anim_name = "dash-up" if direction.y < 0 else "dash"
-		flip = direction.x < 0
-	elif is_blocking:
+	if is_blocking:
 		anim_name = "block" 
 		flip = mouse_pos.x < global_position.x
 	elif is_countering:
 		anim_name = "manji-stance"
-		flip = mouse_pos.x < global_position.x
-		
-	elif is_attacking:
-		var suffix = "-front" if facing_front else ""
-		
-		if current_combo == 1:
-			anim_name = "m1-1-front" if facing_front else "m1"
-		elif current_combo == 2:
-			anim_name = "m1-2" + suffix
-		elif current_combo >= 3:
-			anim_name = "m1-3" + suffix
-			
 		flip = mouse_pos.x < global_position.x
 		
 	elif direction != Vector2.ZERO:

@@ -561,7 +561,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"block",
-"speed": 9.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -575,7 +575,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"block-stop",
-"speed": 9.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -605,9 +605,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_qwsg1")
 }],
-"loop": true,
+"loop": false,
 "name": &"dash",
-"speed": 12.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -634,9 +634,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ajfva")
 }],
-"loop": true,
+"loop": false,
 "name": &"dash-up",
-"speed": 12.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1043,7 +1043,7 @@ shape = SubResource("RectangleShape2D_sweqy")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"m1-3-front"
+animation = &"block-stop"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)
