@@ -61,8 +61,6 @@ var current_manji_cooldown: float = 0
 var is_countering: bool = false
 var manji_damage: int = 25
 
-
-
 # Ultimate
 var is_sukuna: bool = false
 var is_domain_active: bool = false

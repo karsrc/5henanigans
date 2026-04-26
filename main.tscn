@@ -3,6 +3,14 @@
 [ext_resource type="PackedScene" uid="uid://13tie2dpfqq8" path="res://board.tscn" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://od4bwabwgi30" path="res://player.tscn" id="2_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://drnkrb44qjcdt" path="res://enemy_spawner.tscn" id="2_1bvp3"]
+[ext_resource type="Shader" uid="uid://db81n4ecdp6yt" path="res://main.gdshader" id="4_1bvp3"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lquwl"]
+shader = ExtResource("4_1bvp3")
+shader_parameter/curvature = 4.0
+shader_parameter/scanline_count = 256.0
+shader_parameter/scanline_strength = 0.2
+shader_parameter/vignette_multiplier = 1.2
 
 [node name="Main" type="Node" unique_id=1435858522]
 
@@ -17,3 +25,12 @@ scale = Vector2(3, 3)
 
 [node name="CRT_Overlay" type="CanvasLayer" parent="." unique_id=886379498]
 layer = 100
+
+[node name="ColorRect" type="ColorRect" parent="CRT_Overlay" unique_id=927347617]
+material = SubResource("ShaderMaterial_lquwl")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
