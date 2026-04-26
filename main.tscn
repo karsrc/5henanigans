@@ -14,3 +14,6 @@ position = Vector2(396.00006, 386.00006)
 scale = Vector2(3, 3)
 
 [node name="Spawner" parent="." unique_id=264778539 instance=ExtResource("2_1bvp3")]
+
+[node name="CRT_Overlay" type="CanvasLayer" parent="." unique_id=886379498]
+layer = 100

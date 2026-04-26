@@ -438,55 +438,47 @@ func trigger_hit_stop():
 func perform_barrage():
 	is_using_skill = true
 	is_barraging = true
-	is_attacking = false
-	current_combo = 0
-	combo_target = null
 	current_barrage_cooldown = barrage_cooldown
 	
-	var punch_delay = barrage_duration / float(barrage_hits)
+	$AimPivot/AimSprite.show()
+	
+	var anim_name = "barrage_ce" if is_cursed_enhanced else "barrage"
+	$AnimatedSprite2D.play(anim_name)
 	
 	for i in range(barrage_hits):
-		aim_spirte.modulate = Color(1.0, 0.0, 0.0, 0.8) 
-		await get_tree().physics_frame
+		aim_pivot.look_at(get_global_mouse_position())
+		$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
 		
 		var overlapping_bodies = attack_area.get_overlapping_bodies()
-		var enemies_in_range = 0 
+		var enemies_present = false
+		
+		for body in overlapping_bodies:
+			if body.is_in_group("enemy"):
+				enemies_present = true
+				break 
+		
+		if not enemies_present:
+			break 
+		
+		$AudioManager.play_random_sound($AudioManager.light_whiffs, 1.3, 0.2, -12.0)
 		
 		for body in overlapping_bodies:
 			if body.is_in_group("enemy") and body.has_method("take_damage"):
-				enemies_in_range += 1
+				$AudioManager.play_random_sound($AudioManager.light_impacts, 1.1, 0.2, -8.0)
 				body.take_damage(barrage_damage)
-				add_ult_charge(barrage_damage)
+				add_ult_charge(1)
 				
-				if body.has_method("stun"): body.stun(0.4) 
-				
-				if i == barrage_hits - 1:
-					trigger_hit_stop()
-					shake_camera(15)
-					var shove_direction = global_position.direction_to(body.global_position)
-					var target_position = body.global_position + (shove_direction * 150)
-					var knockback_tween = get_tree().create_tween()
-					knockback_tween.tween_property(body, "global_position", target_position, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-				else:
-					if global_position.distance_to(body.global_position) > 40: 
-						var pull_direction = body.global_position.direction_to(global_position)
-						body.global_position += pull_direction * 6
-						
-		if enemies_in_range == 0: break 
-			
-		var tween = get_tree().create_tween()
-		tween.tween_property(aim_spirte, "modulate", Color(1.0, 1.0, 1.0, 0.1), punch_delay - 0.05)
-		await get_tree().create_timer(punch_delay).timeout
+				if global_position.distance_to(body.global_position) > 25:
+					body.global_position += body.global_position.direction_to(global_position) * 10
 		
-	aim_spirte.modulate = Color(1.0, 1.0, 1.0, 1.0) 
+		if not $AimPivot/AimSprite.is_playing():
+			$AimPivot/AimSprite.play()
+
+		await get_tree().create_timer(0.08).timeout
+
+	$AimPivot/AimSprite.hide()
 	is_using_skill = false
 	is_barraging = false
-func enter_the_zone():
-	is_in_zone = true
-	$AnimatedSprite2D.modulate = Color(0.8, 0.2, 0.2) 
-	await get_tree().create_timer(7.0, false, false, true).timeout
-	is_in_zone = false
-	$AnimatedSprite2D.modulate = Color(1, 1, 1) 
 
 func enter_manji_stance():
 	is_using_skill = true
