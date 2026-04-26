@@ -47,6 +47,7 @@ var leap_duration: float = 0.4
 var leap_damage: int = 30
 var leap_cooldown: float = 10.0
 var current_leap_cooldown: float = 0.0
+var is_leaping: bool = false
 
 # Special
 var manji_cooldown: float = 5
@@ -74,6 +75,8 @@ func _ready() -> void:
 	health_bar.value = current_hp
 	awakening_bar.max_value = max_ult_charge
 	awakening_bar.value = current_ult_charge
+	$AnimatedSprite2D.frame_changed.connect(_on_frame_changed)
+	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
 
 func _physics_process(_delta: float):
 	crosshair.global_position = get_global_mouse_position()
@@ -235,52 +238,96 @@ func shake_camera(intensity: float):
 
 func perform_punch():
 	is_attacking = true
+	velocity = Vector2.ZERO
 	time_since_last_hit = 0
+	
+	current_combo += 1
+	if current_combo > 3:
+		current_combo = 1
+
+func update_animation():
+	var anim_name = "idle"
+	var flip = false
+	var mouse_pos = get_global_mouse_position()
+	var facing_front = mouse_pos.y > global_position.y 
+	
+	if is_leaping:
+		anim_name = "knife-leap"
+		flip = mouse_pos.x < global_position.x
+	elif is_barraging:
+		anim_name = "barrage"
+		flip = mouse_pos.x < global_position.x
+	elif is_dashing:
+		anim_name = "dash-up" if direction.y < 0 else "dash"
+		flip = direction.x < 0
+	elif is_blocking:
+		anim_name = "block" 
+		flip = mouse_pos.x < global_position.x
+	elif is_countering:
+		anim_name = "manji-stance"
+		flip = mouse_pos.x < global_position.x
+		
+	elif is_attacking:
+		var suffix = "-front" if facing_front else ""
+		
+		if current_combo == 1:
+			anim_name = "m1-1-front" if facing_front else "m1"
+		elif current_combo == 2:
+			anim_name = "m1-2" + suffix
+		elif current_combo >= 3:
+			anim_name = "m1-3" + suffix
+			
+		flip = mouse_pos.x < global_position.x
+		
+	elif direction != Vector2.ZERO:
+		if direction.y < 0:
+			anim_name = "up-run"
+		else:
+			anim_name = "right-run" 
+			flip = direction.x < 0 if direction.x != 0 else false
+			
+	else:
+		if direction.y < 0: anim_name = "up" 
+		else: anim_name = "right" 
+		
+	if $AnimatedSprite2D.animation != anim_name:
+		$AnimatedSprite2D.play(anim_name)
+		
+	$AnimatedSprite2D.flip_h = flip
+
+func _on_frame_changed():
+	if not is_attacking: return
+	var anim = $AnimatedSprite2D.animation
+	var frame = $AnimatedSprite2D.frame
+	if (anim == "m1" or anim == "m1-1-front" or anim == "m1-2" or anim == "m1-2-front") and frame == 2:
+		execute_hitbox()
+		
+func execute_hitbox():
 	var hit_enemy = false
 	var overlapping_bodies = attack_area.get_overlapping_bodies()
-	
-	var attack_recovery = 0.45 if is_cursed_enhanced else 0.3
-	
 	for body in overlapping_bodies:
 		if body.is_in_group("enemy") and body.has_method("take_damage"):
 			hit_enemy = true
-			if combo_target == body: current_combo += 1
-			else:
-				combo_target = body
-				current_combo = 1
-			
+			if combo_target == body: pass
+			else: combo_target = body
 			if is_cursed_enhanced:
-				body.take_damage(25) 
+				body.take_damage(25)
 				add_ult_charge(25)
 				var shove_dir = global_position.direction_to(body.global_position)
-				body.global_position += shove_dir * 18 
+				body.global_position += shove_dir * 18
 			else:
 				body.take_damage(10)
-				add_ult_charge(25)
-			break 
-			
-	if not hit_enemy:
-		current_combo = 0
-		combo_target = null
-	await get_tree().create_timer(attack_recovery, false, false, true).timeout
-	is_attacking = false 
+				add_ult_charge(10)
+			break
+	if hit_enemy:
+		Engine.time_scale = 0.2
+		await get_tree().create_timer(0.02, true, false, true).timeout
+		Engine.time_scale = 1
 
-func update_animation():
-	if is_barraging:
-		$AnimatedSprite2D.play("left") 
-		if get_global_mouse_position().x > global_position.x: $AnimatedSprite2D.flip_h = true
-		else: $AnimatedSprite2D.flip_h = false
-	else:
-		if direction != Vector2.ZERO:
-			if direction.y < 0: $AnimatedSprite2D.play("up") 
-			elif direction.y > 0: $AnimatedSprite2D.play("down")
-			elif direction.x != 0:
-				$AnimatedSprite2D.play("left")
-				if direction.x > 0: $AnimatedSprite2D.flip_h = true
-				elif direction.x < 0: $AnimatedSprite2D.flip_h = false
-		else:
-			$AnimatedSprite2D.stop()
-			$AnimatedSprite2D.frame = 0
+func _on_animation_finished():
+	var anim = $AnimatedSprite2D.animation
+	if anim.begins_with("m1"):
+		is_attacking = false
 
 func trigger_hit_stop():
 	Engine.time_scale = 0.05
@@ -456,6 +503,7 @@ func perform_leap() -> void:
 	is_attacking = false
 	current_combo = 0
 	combo_target = null
+	is_leaping = true
 	
 	velocity = Vector2.ZERO
 	await get_tree().create_timer(0.2, false, false, true).timeout 
@@ -508,7 +556,8 @@ func perform_leap() -> void:
 		
 	for enemy in all_enemies:
 		remove_collision_exception_with(enemy)
-	
+		
+	is_leaping = false
 	is_using_skill = false
 
 func toggle_cursed_stance():
