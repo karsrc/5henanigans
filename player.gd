@@ -43,8 +43,8 @@ var is_in_zone: bool = false
 var is_cursed_enhanced: bool = false
 
 # Skill 3
-var leap_speed: int = 1050
-var leap_duration: float = 0.4
+var leap_speed: int = 400
+var leap_duration: float = 1
 var leap_damage: int = 30
 var leap_cooldown: float = 10.0
 var current_leap_cooldown: float = 0.0
@@ -140,18 +140,17 @@ func _physics_process(_delta: float):
 			return
 			
 	if not is_using_skill:
+		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		
 		if is_attacking:
-			velocity = Vector2.ZERO
+			velocity = direction * (speed * 0.3)
+			$AnimatedSprite2D.flip_h =  get_global_mouse_position().x < global_position.x
+		elif Input.is_key_pressed(KEY_F):
+			is_blocking = true
+			velocity = direction * (speed * 0.3)
 		else:
-			direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-			
-			if Input.is_key_pressed(KEY_F):
-				is_blocking = true
-				velocity = direction * (speed * 0.3)
-			else:
-				is_blocking = false
-				velocity = direction * speed
-				
+			is_blocking = false
+			velocity = direction * speed
 		if Input.is_key_pressed(KEY_SPACE) and current_dash_cooldown <= 0:
 			perform_dash()
 			return 
@@ -180,6 +179,10 @@ func _physics_process(_delta: float):
 	if is_barraging:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = direction * (speed * 0.6) 
+	if is_leaping and ($AnimatedSprite2D.animation == "knife-stance" or $AnimatedSprite2D.animation == "knife-leap-land"):
+		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		velocity = direction * (speed * 0.2)
+		$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
 		
 	update_animation()
 	move_and_slide()
@@ -245,7 +248,6 @@ func shake_camera(intensity: float):
 
 func perform_punch():
 	is_attacking = true
-	velocity = Vector2.ZERO
 	time_since_last_hit = 0
 	has_hit_this_punch = false
 	
@@ -529,22 +531,20 @@ func perform_leap() -> void:
 	
 	$AnimatedSprite2D.play("knife-leap")
 	
-	var custom_leap_speed = 700.0
-	var custom_leap_duration = 0.6
 	
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
 	for enemy in all_enemies:
 		add_collision_exception_with(enemy)
 	
 	var dash_direction = global_position.direction_to(get_global_mouse_position())
-	velocity = dash_direction * custom_leap_speed
+	velocity = dash_direction * leap_speed
 	current_leap_cooldown = leap_cooldown
 	
 	var dash_time_passed = 0.0
 	var enemies_hit = []
 	var hit_someone = false
 	
-	while dash_time_passed < custom_leap_duration:
+	while dash_time_passed < leap_duration:
 		await get_tree().physics_frame
 		dash_time_passed += get_physics_process_delta_time()
 		

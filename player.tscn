@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://bny1m0rolaj4m" path="res://area_2d.gd" id="3_2hs0m"]
 [ext_resource type="Script" uid="uid://dl1fmdy47fnqm" path="res://camera_2d.gd" id="3_i3pqv"]
 [ext_resource type="Texture2D" uid="uid://3hsflvie1rwx" path="res://yuji2-Sheet.png" id="4_1jxqw"]
+[ext_resource type="Texture2D" uid="uid://b870ftrkmrnvb" path="res://shadow.png" id="4_dw050"]
 [ext_resource type="Texture2D" uid="uid://cuuniufqbe328" path="res://graphics3/player/crosshair.png" id="6_2hs0m"]
 [ext_resource type="Texture2D" uid="uid://c7x7lpdx75tby" path="res://icon.svg" id="7_1jxqw"]
 
@@ -722,7 +723,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1",
-"speed": 15.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -742,7 +743,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1-1-front",
-"speed": 15.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -768,7 +769,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1-2",
-"speed": 15.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -789,9 +790,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_dn2kn")
 }],
-"loop": true,
+"loop": false,
 "name": &"m1-2-front",
-"speed": 15.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -811,7 +812,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1-3",
-"speed": 15.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -834,7 +835,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1-3-front",
-"speed": 15.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1040,10 +1041,14 @@ script = ExtResource("3_2hs0m")
 position = Vector2(11.5, 0)
 shape = SubResource("RectangleShape2D_sweqy")
 
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1003043476]
+modulate = Color(1, 1, 1, 0.3882353)
+texture = ExtResource("4_dw050")
+
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"block-stop"
+animation = &"knife-leap"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)
