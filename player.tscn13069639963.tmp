@@ -2244,7 +2244,7 @@ texture = ExtResource("4_dw050")
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
 animation = &"right_ce"
-frame_progress = 0.09995682
+frame_progress = 0.63205326
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)

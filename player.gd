@@ -28,6 +28,7 @@ var current_dash_cooldown: float = 0
 var enemies_hit_this_punch: Array = []
 var punch_cooldown: float = 0
 
+
 # Skill 1
 var barrage_duration: float = 2.0
 var barrage_hits: int = 30
@@ -37,13 +38,11 @@ var barrage_cooldown: float = 9.0
 var current_barrage_cooldown: float = 0.0
 
 # Skill 2
-var divergent_cooldown: float = 8.0
-var current_divergent_cooldown: float = 0.0
-var is_sprinting: bool = false
-var qte_in_progress: bool = false
-var black_flash_triggered: bool = false
 var is_in_zone: bool = false
 var is_cursed_enhanced: bool = false
+var ce_duration: float = 0
+var ce_cooldown: float = 0
+var ce_tween: Tween
 
 # Skill 3
 var leap_speed: int = 400
@@ -95,6 +94,11 @@ func _physics_process(_delta: float):
 	if current_dash_cooldown > 0: current_dash_cooldown -= _delta
 	if current_manji_cooldown > 0: current_manji_cooldown -= _delta
 	if punch_cooldown > 0: punch_cooldown -= _delta
+	if ce_cooldown > 0: ce_cooldown -= _delta
+	if ce_duration > 0:
+		ce_duration -= _delta
+		if ce_duration <= 0:
+			deactivate_cursed_energy()
 	
 	if Input.is_key_pressed(KEY_9):
 		add_ult_charge(max_ult_charge)
@@ -135,8 +139,8 @@ func _physics_process(_delta: float):
 		
 	# NORMAL YUJI LOGIC
 
-	if Input.is_action_just_pressed("skill_2"):
-		toggle_cursed_stance()
+	if Input.is_action_just_pressed("skill_2") and ce_cooldown <= 0 and not is_cursed_enhanced:
+		activate_cursed_energy()
 		return
 		
 	if Input.is_key_pressed(KEY_R):
@@ -303,27 +307,30 @@ func perform_punch():
 func update_animation():
 	if is_attacking or is_leaping or is_barraging or is_dashing or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
 		return 
-
+	var anim = "" 
+	
 	if velocity != Vector2.ZERO:
 		if speed == run_speed:
 			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
-				$AnimatedSprite2D.play("up-run")
-			elif velocity.y > 0 and abs(velocity.y) > abs(velocity.x):
-				$AnimatedSprite2D.play("front-run")
+				anim = "up-run"
 			else:
-				$AnimatedSprite2D.play("right-run")
+				anim = "right-run"
 		else:
 			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
-				$AnimatedSprite2D.play("up-walk")
-			elif velocity.y > 0 and abs(velocity.y) > abs(velocity.x):
-				$AnimatedSprite2D.play("front-walk")
+				anim = "up-walk" 
 			else:
-				$AnimatedSprite2D.play("right-walk")
+				anim = "right-walk" 
 
 		if velocity.x != 0:
 			$AnimatedSprite2D.flip_h = velocity.x < 0
 	else:
-		$AnimatedSprite2D.play("idle")
+		anim = "right"
+
+	if is_cursed_enhanced:
+		anim += "_ce" 
+
+	$AnimatedSprite2D.play(anim)
+
 
 func _on_frame_changed():
 	if not is_attacking: return
@@ -444,80 +451,6 @@ func perform_barrage():
 	aim_spirte.modulate = Color(1.0, 1.0, 1.0, 1.0) 
 	is_using_skill = false
 	is_barraging = false
-func perform_divergent_sprint():
-	is_using_skill = true
-	is_sprinting = true
-	qte_in_progress = false
-	black_flash_triggered = false
-	current_divergent_cooldown = divergent_cooldown
-	
-	var dash_dir = global_position.direction_to(get_global_mouse_position())
-	velocity = dash_dir * (speed * 2.5) 
-	
-	var time_passed = 0.0
-	while time_passed < 0.4 and is_sprinting:
-		await get_tree().physics_frame
-		time_passed += get_physics_process_delta_time()
-		
-		for body in attack_area.get_overlapping_bodies():
-			if body.is_in_group("enemy") and body.has_method("take_damage"):
-				# --- 1. THE KINETIC IMPACT ---
-				is_sprinting = false
-				velocity = Vector2.ZERO 
-				
-				qte_in_progress = true # Open the recast window
-				
-				# --- 2. THE HIT-STOP CUE ---
-				Engine.time_scale = 0.05 
-				$AnimatedSprite2D.modulate = Color(10, 10, 10) 
-				shake_camera(8.0) 
-				
-				# --- 3. THE SWEET SPOT (0.2s Window) ---
-				await get_tree().create_timer(0.2, true, false, true).timeout 
-				
-				# --- 4. RESUME TIME ---
-				qte_in_progress = false
-				Engine.time_scale = 1.0
-				$AnimatedSprite2D.modulate = Color(1, 1, 1) if not is_in_zone else Color(0.8, 0.2, 0.2)
-				
-				# --- 5. THE OUTCOME ---
-				if black_flash_triggered: execute_black_flash(body)
-				else: execute_divergent_fist(body)
-				return 
-				
-	velocity = Vector2.ZERO
-	is_using_skill = false
-	is_sprinting = false
-func execute_divergent_fist(target: Node2D):
-	target.take_damage(10) 
-	is_using_skill = false 
-	
-	await get_tree().create_timer(0.5, false, false, true).timeout
-	
-	if is_instance_valid(target):
-		trigger_hit_stop()
-		shake_camera(10.0)
-		target.take_damage(20) 
-		
-		var all_enemies = get_tree().get_nodes_in_group("enemy")
-		for enemy in all_enemies:
-			if is_instance_valid(enemy) and enemy != target:
-				if target.global_position.distance_to(enemy.global_position) < 65:
-					var shove_dir = target.global_position.direction_to(enemy.global_position)
-					if shove_dir == Vector2.ZERO: shove_dir = Vector2.RIGHT
-					enemy.global_position += shove_dir * 50
-
-func execute_black_flash(target: Node2D):
-	is_using_skill = false
-	$AnimatedSprite2D.modulate = Color(-1, -0.5, -0.5) 
-	trigger_hit_stop() 
-	shake_camera(25.0)
-	
-	target.take_damage(60) 
-	current_divergent_cooldown = 0.0 
-	
-	if not is_in_zone: enter_the_zone()
-
 func enter_the_zone():
 	is_in_zone = true
 	$AnimatedSprite2D.modulate = Color(0.8, 0.2, 0.2) 
@@ -757,3 +690,17 @@ func add_ult_charge(amount: int):
 	if current_ult_charge >= max_ult_charge:
 		current_ult_charge = max_ult_charge
 		awakening_bar.value = current_ult_charge
+
+func activate_cursed_energy():
+	is_cursed_enhanced = true
+	ce_duration = 12
+	if ce_tween: ce_tween.kill()
+	ce_tween = create_tween().set_loops()
+	ce_tween.tween_property($AnimatedSprite2D, "modulate", Color(1.2, 1.5, 2), 0.5)
+	ce_tween.tween_property($AnimatedSprite2D, "modulate", Color(1, 1, 1), 0.5)
+	
+func deactivate_cursed_energy():
+	is_cursed_enhanced = false
+	ce_cooldown = 15
+	if ce_tween: ce_tween.kill()
+	$AnimatedSprite2D.modulate = Color(1,1,1)
