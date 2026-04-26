@@ -207,10 +207,13 @@ func take_damage(damage_amount: int) -> void:
 	if current_hp <= 0:
 		die()
 	else:
-		is_invincible = true
-		$AnimatedSprite2D.modulate = Color(1, 0, 0, 0.5) 
+		var flash_tween = get_tree().create_tween()
+		flash_tween.set_loops(5)
+		flash_tween.tween_property($AnimatedSprite2D, "modulate", Color(5, 5, 5, 0.4), 0.05)
+		flash_tween.tween_property($AnimatedSprite2D, "modulate", Color(1,1,1,1), 0.05)
 		await get_tree().create_timer(0.5, false, false, true).timeout
-		$AnimatedSprite2D.modulate = Color(1, 1, 1, 1) 
+		flash_tween.kill()
+		$AnimatedSprite2D.modulate = Color(1,1,1,1)
 		is_invincible = false
 
 func perform_dash():
@@ -329,15 +332,25 @@ func execute_hitbox():
 			
 			if enemy.has_method("take_damage"):
 				hit_enemy = true
+				var knockback_distance = 6
+				if current_combo == 2:
+					knockback_distance = 12
+				elif current_combo >= 3:
+					knockback_distance = 22
+				if is_cursed_enhanced:
+					knockback_distance += 6
+				
+				var shove_dir = global_position.direction_to(enemy.global_position)
+				enemy.global_position += shove_dir * knockback_distance
 				
 				if is_cursed_enhanced:
 					enemy.take_damage(25) 
 					add_ult_charge(25)
-					var shove_dir = global_position.direction_to(enemy.global_position)
-					enemy.global_position += shove_dir * 18 
 				else:
 					enemy.take_damage(10)
 					add_ult_charge(10)
+				if enemy.has_method("apply_slow"):
+					enemy.apply_slow()
 					
 	if hit_enemy:
 		Engine.time_scale = 0.2
