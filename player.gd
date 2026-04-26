@@ -8,7 +8,9 @@ extends CharacterBody2D
 @onready var awakening_bar = $CanvasLayer/AwakeningBar
 
 var direction: Vector2 = Vector2(1,1)
-var speed: int = 280
+var walk_speed: float = 180
+var run_speed: float = 300
+var speed: float = walk_speed
 var max_hp: int = 160
 var current_hp: int = 160
 var is_attacking: bool = false
@@ -45,7 +47,7 @@ var is_cursed_enhanced: bool = false
 
 # Skill 3
 var leap_speed: int = 400
-var leap_duration: float = 1
+var leap_duration: float = 1.1
 var leap_damage: int = 30
 var leap_cooldown: float = 10.0
 var current_leap_cooldown: float = 0.0
@@ -144,7 +146,11 @@ func _physics_process(_delta: float):
 			
 	if not is_using_skill:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		
+		if Input.is_action_pressed("sprint") and direction != Vector2.ZERO and punch_cooldown <= 0 and not is_attacking:
+			speed = run_speed
+		else:
+			speed = walk_speed
+		velocity = direction * speed
 		if is_attacking or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
 					velocity = direction * (speed * 0.3)
 					$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
@@ -296,34 +302,28 @@ func perform_punch():
 
 func update_animation():
 	if is_attacking or is_leaping or is_barraging or is_dashing or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
-		return
-		
-	var anim_name = "idle"
-	var flip = false
-	var mouse_pos = get_global_mouse_position()
-	
-	if is_blocking:
-		anim_name = "block" 
-		flip = mouse_pos.x < global_position.x
-	elif is_countering:
-		anim_name = "manji-stance"
-		flip = mouse_pos.x < global_position.x
-		
-	elif direction != Vector2.ZERO:
-		if direction.y < 0:
-			anim_name = "up-run"
+		return 
+
+	if velocity != Vector2.ZERO:
+		if speed == run_speed:
+			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
+				$AnimatedSprite2D.play("up-run")
+			elif velocity.y > 0 and abs(velocity.y) > abs(velocity.x):
+				$AnimatedSprite2D.play("front-run")
+			else:
+				$AnimatedSprite2D.play("right-run")
 		else:
-			anim_name = "right-run" 
-			flip = direction.x < 0 if direction.x != 0 else false
-			
+			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
+				$AnimatedSprite2D.play("up-walk")
+			elif velocity.y > 0 and abs(velocity.y) > abs(velocity.x):
+				$AnimatedSprite2D.play("front-walk")
+			else:
+				$AnimatedSprite2D.play("right-walk")
+
+		if velocity.x != 0:
+			$AnimatedSprite2D.flip_h = velocity.x < 0
 	else:
-		if direction.y < 0: anim_name = "up" 
-		else: anim_name = "right" 
-		
-	if $AnimatedSprite2D.animation != anim_name:
-		$AnimatedSprite2D.play(anim_name)
-		
-	$AnimatedSprite2D.flip_h = flip
+		$AnimatedSprite2D.play("idle")
 
 func _on_frame_changed():
 	if not is_attacking: return

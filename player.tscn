@@ -777,7 +777,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"knife-leap",
-"speed": 9.0
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1029,7 +1029,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"right-run",
-"speed": 8.0
+"speed": 17.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1061,7 +1061,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"right-walk",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1095,7 +1095,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"up-run",
-"speed": 8.0
+"speed": 17.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1115,7 +1115,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"up-walk",
-"speed": 5.0
+"speed": 10.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2hs0m"]
@@ -1162,7 +1162,7 @@ texture = ExtResource("4_dw050")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"knife-leap"
+animation = &"up"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)
