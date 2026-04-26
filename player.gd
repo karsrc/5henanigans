@@ -6,7 +6,10 @@ extends CharacterBody2D
 @onready var attack_area = $AimPivot/AttackArea
 @onready var health_bar = $CanvasLayer/ProgressBar
 @onready var awakening_bar = $CanvasLayer/AwakeningBar
+@onready var tile_map = get_parent().get_node("board") 
 
+
+var is_under_overlay: bool = false
 var direction: Vector2 = Vector2(1,1)
 var walk_speed: float = 180
 var run_speed: float = 300
@@ -99,6 +102,12 @@ func _physics_process(_delta: float):
 		ce_duration -= _delta
 		if ce_duration <= 0:
 			deactivate_cursed_energy()
+	
+	var player_tile_pos = tile_map.local_to_map(tile_map.to_local(global_position))
+	var has_tile_above = tile_map.get_cell_source_id(3, player_tile_pos) != -1
+	if has_tile_above != is_under_overlay:
+		is_under_overlay = has_tile_above
+		fade_tilemap_layer(3, 0.3 if is_under_overlay else 1)
 	
 	if Input.is_key_pressed(KEY_9):
 		add_ult_charge(max_ult_charge)
@@ -704,3 +713,14 @@ func deactivate_cursed_energy():
 	ce_cooldown = 15
 	if ce_tween: ce_tween.kill()
 	$AnimatedSprite2D.modulate = Color(1,1,1)
+
+func fade_tilemap_layer(layer_index: int, target_alpha: float):
+	var tween = create_tween()
+	var current_color = tile_map.get_layer_modulate(layer_index)
+	var target_color = Color(current_color.r, current_color.g, current_color.b, target_alpha)
+	tween.tween_method(
+		func(c): tile_map.set_layer_modulate(layer_index, c),
+		current_color,
+		target_color,
+		0.25
+	)
