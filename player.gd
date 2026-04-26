@@ -253,7 +253,9 @@ func update_animation():
 	
 	if is_leaping:
 		anim_name = "knife-leap"
-		flip = mouse_pos.x < global_position.x
+		$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
+		return
+		
 	elif is_barraging:
 		anim_name = "barrage"
 		flip = mouse_pos.x < global_position.x
@@ -506,21 +508,27 @@ func perform_leap() -> void:
 	is_leaping = true
 	
 	velocity = Vector2.ZERO
-	await get_tree().create_timer(0.2, false, false, true).timeout 
+	$AnimatedSprite2D.play("knife-stance")
+	await $AnimatedSprite2D.animation_finished 
+	
+	$AnimatedSprite2D.play("knife-leap")
+	
+	var custom_leap_speed = 700.0
+	var custom_leap_duration = 0.6
 	
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
 	for enemy in all_enemies:
 		add_collision_exception_with(enemy)
 	
 	var dash_direction = global_position.direction_to(get_global_mouse_position())
-	velocity = dash_direction * leap_speed
+	velocity = dash_direction * custom_leap_speed
 	current_leap_cooldown = leap_cooldown
 	
 	var dash_time_passed = 0.0
 	var enemies_hit = []
 	var hit_someone = false
 	
-	while dash_time_passed < leap_duration:
+	while dash_time_passed < custom_leap_duration:
 		await get_tree().physics_frame
 		dash_time_passed += get_physics_process_delta_time()
 		
@@ -556,6 +564,9 @@ func perform_leap() -> void:
 		
 	for enemy in all_enemies:
 		remove_collision_exception_with(enemy)
+		
+	$AnimatedSprite2D.play("knife-leap-land")
+	await $AnimatedSprite2D.animation_finished 
 		
 	is_leaping = false
 	is_using_skill = false
