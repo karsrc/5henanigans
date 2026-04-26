@@ -23,6 +23,7 @@ var is_dashing: bool = false
 var dash_speed: int = 700
 var dash_cooldown: float = 1.2
 var current_dash_cooldown: float = 0
+var has_hit_this_punch: bool = false
 
 # Skill 1
 var barrage_duration: float = 2.0
@@ -80,7 +81,8 @@ func _ready() -> void:
 
 func _physics_process(_delta: float):
 	crosshair.global_position = get_global_mouse_position()
-	aim_pivot.look_at(get_global_mouse_position())
+	if not is_attacking and not is_barraging and not is_leaping:
+		aim_pivot.look_at(get_global_mouse_position())
 	
 	# --- TICK COOLDOWNS ---
 	if dismantle_cooldown > 0: dismantle_cooldown -= _delta
@@ -126,50 +128,49 @@ func _physics_process(_delta: float):
 		move_and_slide()
 		return
 		
-	# YUJI LOGIC
-	# Skill 2 
+	# NORMAL YUJI LOGIC
+
 	if Input.is_action_just_pressed("skill_2"):
 		toggle_cursed_stance()
 		return
 		
-	# R Special 
 	if Input.is_key_pressed(KEY_R):
 		if current_manji_cooldown <= 0:
 			enter_manji_stance()
 			return
 			
 	if not is_using_skill:
-		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		
-		if Input.is_key_pressed(KEY_F):
-			is_blocking = true
-			velocity = direction * (speed * 0.3)
+		if is_attacking:
+			velocity = Vector2.ZERO
 		else:
-			is_blocking = false
-			velocity = direction * speed
+			direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 			
+			if Input.is_key_pressed(KEY_F):
+				is_blocking = true
+				velocity = direction * (speed * 0.3)
+			else:
+				is_blocking = false
+				velocity = direction * speed
+				
 		if Input.is_key_pressed(KEY_SPACE) and current_dash_cooldown <= 0:
 			perform_dash()
 			return 
 			
-		if Input.is_action_just_pressed("skill_1"):
-			if current_barrage_cooldown <= 0:
-				perform_barrage()
-				return
-				
-		if Input.is_action_just_pressed("skill_3"):
-			if current_leap_cooldown <= 0:
-				perform_leap()
-				return
-				
-		if Input.is_action_just_pressed("skill_4"):
-			if current_ult_charge >= max_ult_charge:
-				transform_sukuna()
-				return
-				
+		if Input.is_action_just_pressed("skill_1") and current_barrage_cooldown <= 0:
+			perform_barrage()
+			return
+			
+		if Input.is_action_just_pressed("skill_3") and current_leap_cooldown <= 0:
+			perform_leap()
+			return
+			
+		if Input.is_action_just_pressed("skill_4") and current_ult_charge >= max_ult_charge:
+			transform_sukuna()
+			return
+			
 		if current_combo > 0 and not is_attacking:
 			time_since_last_hit += _delta
-			if time_since_last_hit >= combo_drop_time:
+			if time_since_last_hit >= 0.3: 
 				current_combo = 0
 				combo_target = null
 				
@@ -240,10 +241,29 @@ func perform_punch():
 	is_attacking = true
 	velocity = Vector2.ZERO
 	time_since_last_hit = 0
+	has_hit_this_punch = false
 	
 	current_combo += 1
 	if current_combo > 3:
 		current_combo = 1
+		
+	var mouse_pos = get_global_mouse_position()
+	var facing_front = mouse_pos.y > global_position.y
+	var suffix = "-front" if facing_front else ""
+	
+	var anim_to_play = "m1"
+	if current_combo == 1:
+		anim_to_play = "m1-1-front" if facing_front else "m1"
+	elif current_combo == 2:
+		anim_to_play = "m1-2" + suffix
+	elif current_combo == 3:
+		anim_to_play = "m1-3" + suffix
+		
+	if is_cursed_enhanced:
+		anim_to_play += "_ce"
+		
+	$AnimatedSprite2D.play(anim_to_play)
+	$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
 
 func update_animation():
 	var anim_name = "idle"
@@ -306,25 +326,36 @@ func _on_frame_changed():
 		
 func execute_hitbox():
 	var hit_enemy = false
-	var overlapping_bodies = attack_area.get_overlapping_bodies()
-	for body in overlapping_bodies:
-		if body.is_in_group("enemy") and body.has_method("take_damage"):
-			hit_enemy = true
-			if combo_target == body: pass
-			else: combo_target = body
-			if is_cursed_enhanced:
-				body.take_damage(25)
-				add_ult_charge(25)
-				var shove_dir = global_position.direction_to(body.global_position)
-				body.global_position += shove_dir * 18
-			else:
-				body.take_damage(10)
-				add_ult_charge(10)
-			break
+	var all_enemies = get_tree().get_nodes_in_group("enemy")
+	
+	var locked_aim_direction = Vector2.RIGHT.rotated(aim_pivot.rotation)
+	
+	for enemy in all_enemies:
+		if not is_instance_valid(enemy): continue
+		
+		var distance = global_position.distance_to(enemy.global_position)
+		var dir_to_enemy = global_position.direction_to(enemy.global_position)
+		
+		var is_in_front = locked_aim_direction.dot(dir_to_enemy) > 0.3 
+		
+		if attack_area.overlaps_body(enemy) or (distance <= 45 and is_in_front):
+			
+			if enemy.has_method("take_damage"):
+				hit_enemy = true
+				
+				if is_cursed_enhanced:
+					enemy.take_damage(25) 
+					add_ult_charge(25)
+					var shove_dir = global_position.direction_to(enemy.global_position)
+					enemy.global_position += shove_dir * 18 
+				else:
+					enemy.take_damage(10)
+					add_ult_charge(10)
+					
 	if hit_enemy:
 		Engine.time_scale = 0.2
 		await get_tree().create_timer(0.02, true, false, true).timeout
-		Engine.time_scale = 1
+		Engine.time_scale = 1.0
 
 func _on_animation_finished():
 	var anim = $AnimatedSprite2D.animation

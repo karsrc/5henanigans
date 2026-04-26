@@ -722,7 +722,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1",
-"speed": 9.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -742,7 +742,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1-1-front",
-"speed": 9.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -768,7 +768,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1-2",
-"speed": 9.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -791,7 +791,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"m1-2-front",
-"speed": 9.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -811,7 +811,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1-3",
-"speed": 9.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -834,7 +834,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"m1-3-front",
-"speed": 9.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1043,8 +1043,7 @@ shape = SubResource("RectangleShape2D_sweqy")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"right-run"
-frame_progress = 0.57597196
+animation = &"m1-3-front"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)
