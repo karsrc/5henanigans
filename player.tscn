@@ -120,8 +120,8 @@ animations = [{
 "speed": 20.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_sweqy"]
-size = Vector2(23, 24)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dw050"]
+size = Vector2(29, 21)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1jxqw"]
 atlas = ExtResource("4_1jxqw")
@@ -1140,10 +1140,10 @@ script = ExtResource("1_onrkg")
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
 
 [node name="AimSprite" type="AnimatedSprite2D" parent="AimPivot" unique_id=1766600192]
-position = Vector2(11, 0)
+position = Vector2(11.000001, 0)
 scale = Vector2(1.3, 1.3)
 sprite_frames = SubResource("SpriteFrames_w3a0q")
-animation = &"swipe1"
+animation = &"swipe2"
 frame = 6
 frame_progress = 1.0
 
@@ -1152,8 +1152,8 @@ collision_mask = 2
 script = ExtResource("3_2hs0m")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AimPivot/AttackArea" unique_id=1169180591]
-position = Vector2(11.5, 0)
-shape = SubResource("RectangleShape2D_sweqy")
+position = Vector2(7.5, -1.5)
+shape = SubResource("RectangleShape2D_dw050")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1003043476]
 modulate = Color(1, 1, 1, 0.3882353)

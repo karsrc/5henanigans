@@ -23,7 +23,8 @@ var is_dashing: bool = false
 var dash_speed: int = 700
 var dash_cooldown: float = 1.2
 var current_dash_cooldown: float = 0
-var has_hit_this_punch: bool = false
+var enemies_hit_this_punch: Array = []
+var punch_cooldown: float = 0
 
 # Skill 1
 var barrage_duration: float = 2.0
@@ -91,6 +92,7 @@ func _physics_process(_delta: float):
 	if current_barrage_cooldown > 0: current_barrage_cooldown -= _delta
 	if current_dash_cooldown > 0: current_dash_cooldown -= _delta
 	if current_manji_cooldown > 0: current_manji_cooldown -= _delta
+	if punch_cooldown > 0: punch_cooldown -= _delta
 	
 	if Input.is_key_pressed(KEY_9):
 		add_ult_charge(max_ult_charge)
@@ -143,9 +145,9 @@ func _physics_process(_delta: float):
 	if not is_using_skill:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		
-		if is_attacking:
-			velocity = direction * (speed * 0.3)
-			$AnimatedSprite2D.flip_h =  get_global_mouse_position().x < global_position.x
+		if is_attacking or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
+					velocity = direction * (speed * 0.3)
+					$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
 		elif Input.is_key_pressed(KEY_F):
 			is_blocking = true
 			velocity = direction * (speed * 0.3)
@@ -170,11 +172,11 @@ func _physics_process(_delta: float):
 			
 		if current_combo > 0 and not is_attacking:
 			time_since_last_hit += _delta
-			if time_since_last_hit >= 0.3: 
+			if time_since_last_hit >= 0.8: 
 				current_combo = 0
 				combo_target = null
 				
-		if Input.is_action_pressed("attack") and not is_attacking:
+		if Input.is_action_pressed("attack") and not is_attacking and punch_cooldown <= 0:
 			perform_punch()
 			
 	if is_barraging:
@@ -252,14 +254,20 @@ func shake_camera(intensity: float):
 
 func perform_punch():
 	is_attacking = true
+	$AimPivot.look_at(get_global_mouse_position())
 	time_since_last_hit = 0
-	has_hit_this_punch = false
+	enemies_hit_this_punch.clear()
 	
 	current_combo += 1
 	if current_combo > 3:
 		current_combo = 1
 		
 	var mouse_pos = get_global_mouse_position()
+	var lunge_dir = global_position.direction_to(mouse_pos)
+	if current_combo == 2:
+		global_position += lunge_dir * 8.0
+	elif current_combo == 3:
+		global_position += lunge_dir * 18.0
 	var facing_front = mouse_pos.y > global_position.y
 	var suffix = "-front" if facing_front else ""
 	
@@ -287,7 +295,7 @@ func perform_punch():
 		$AimPivot/AimSprite.flip_v = true
 
 func update_animation():
-	if is_attacking or is_leaping or is_barraging or is_dashing:
+	if is_attacking or is_leaping or is_barraging or is_dashing or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
 		return
 		
 	var anim_name = "idle"
@@ -319,9 +327,11 @@ func update_animation():
 
 func _on_frame_changed():
 	if not is_attacking: return
+	
 	var anim = $AnimatedSprite2D.animation
 	var frame = $AnimatedSprite2D.frame
-	if (anim == "m1" or anim == "m1-1-front" or anim == "m1-2" or anim == "m1-2-front") and frame == 2:
+	
+	if anim.begins_with("m1") and frame == 2:
 		execute_hitbox()
 		
 func execute_hitbox():
@@ -341,37 +351,48 @@ func execute_hitbox():
 		if attack_area.overlaps_body(enemy) or (distance <= 45 and is_in_front):
 			
 			if enemy.has_method("take_damage"):
+				if enemy in enemies_hit_this_punch:
+					continue
+					
+				enemies_hit_this_punch.append(enemy)
 				hit_enemy = true
-				var knockback_distance = 6
-				if current_combo == 2:
-					knockback_distance = 12
-				elif current_combo >= 3:
-					knockback_distance = 22
-				if is_cursed_enhanced:
-					knockback_distance += 6
 				
+				var knockback_distance = 6.0
+				var base_damage = 10 
+				
+				if current_combo == 2:
+					knockback_distance = 12.0
+					base_damage = 12
+				elif current_combo >= 3:
+					knockback_distance = 22.0
+					base_damage = 25
+					
+				if is_cursed_enhanced:
+					knockback_distance += 6.0
+					base_damage += 15
+					
 				var shove_dir = global_position.direction_to(enemy.global_position)
 				enemy.global_position += shove_dir * knockback_distance
 				
-				if is_cursed_enhanced:
-					enemy.take_damage(25) 
-					add_ult_charge(25)
-				else:
-					enemy.take_damage(10)
-					add_ult_charge(10)
+				enemy.take_damage(base_damage)
+				add_ult_charge(base_damage)
+					
 				if enemy.has_method("apply_slow"):
 					enemy.apply_slow()
-					
 	if hit_enemy:
 		Engine.time_scale = 0.2
 		await get_tree().create_timer(0.02, true, false, true).timeout
 		Engine.time_scale = 1.0
 
 func _on_animation_finished():
-	var anim = $AnimatedSprite2D.animation
-	if anim.begins_with("m1"):
-		is_attacking = false
-		$AimPivot/AimSprite.hide()
+	if $AnimatedSprite2D.animation.begins_with("m1"):
+			$AimPivot/AimSprite.hide()
+			if current_combo == 3:
+				punch_cooldown = 0.35 
+			else:
+				punch_cooldown = 0.1 
+				
+			is_attacking = false
 
 func trigger_hit_stop():
 	Engine.time_scale = 0.05
