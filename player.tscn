@@ -8,6 +8,22 @@
 [ext_resource type="Texture2D" uid="uid://b870ftrkmrnvb" path="res://shadow.png" id="4_dw050"]
 [ext_resource type="Texture2D" uid="uid://cuuniufqbe328" path="res://graphics3/player/crosshair.png" id="6_2hs0m"]
 [ext_resource type="Texture2D" uid="uid://c7x7lpdx75tby" path="res://icon.svg" id="7_1jxqw"]
+[ext_resource type="Script" uid="uid://beoq5v680bh53" path="res://audio_manager.gd" id="9_b26j0"]
+[ext_resource type="AudioStream" uid="uid://cbqjkx20u4xha" path="res://graphics3/sounds/LightImpact1.wav" id="10_dx0e4"]
+[ext_resource type="AudioStream" uid="uid://cpar7hwhw31qo" path="res://graphics3/sounds/LightImpact2.wav" id="11_jm5j8"]
+[ext_resource type="AudioStream" uid="uid://dxssiyda3e7k4" path="res://graphics3/sounds/LightImpact.wav" id="12_7hik5"]
+[ext_resource type="AudioStream" uid="uid://dtpkfma86lfjg" path="res://graphics3/sounds/HeavyImpact1.wav" id="13_qtqh7"]
+[ext_resource type="AudioStream" uid="uid://b3g6kiqdl4p8i" path="res://graphics3/sounds/HeavyImpact2.wav" id="14_2wuci"]
+[ext_resource type="AudioStream" uid="uid://b4v3gokk7r8c8" path="res://graphics3/sounds/HeavyImpact.wav" id="15_iruf7"]
+[ext_resource type="AudioStream" uid="uid://cnvjayibptxer" path="res://graphics3/sounds/LightWhiff.wav" id="16_j5n4i"]
+[ext_resource type="AudioStream" uid="uid://3oii53ewyaqy" path="res://graphics3/sounds/HeavyWhiff.wav" id="17_634y6"]
+[ext_resource type="AudioStream" uid="uid://cqkm46r3aa5am" path="res://graphics3/sounds/Block1.wav" id="18_efrwb"]
+[ext_resource type="AudioStream" uid="uid://b02bhqixb4rhx" path="res://graphics3/sounds/Block2.wav" id="19_hiqhm"]
+[ext_resource type="AudioStream" uid="uid://dswwkxs5m4l88" path="res://graphics3/sounds/Block.wav" id="20_tkwlq"]
+[ext_resource type="AudioStream" uid="uid://cqhh05shbkjlj" path="res://graphics3/sounds/Dash1.wav" id="21_hl5qd"]
+[ext_resource type="AudioStream" uid="uid://hpskwc0ypjmd" path="res://graphics3/sounds/Dash.wav" id="22_ek41f"]
+[ext_resource type="AudioStream" uid="uid://b3r5kbuoeltb3" path="res://graphics3/sounds/FootstepsRun.wav" id="23_khis8"]
+[ext_resource type="AudioStream" uid="uid://bu34uh4jgh7cw" path="res://graphics3/sounds/FootstepsWalk.wav" id="24_b88wv"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pskma"]
 atlas = ExtResource("2_dw050")
@@ -2200,7 +2216,7 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2hs0m"]
-size = Vector2(8, 3)
+size = Vector2(8, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2hs0m"]
 bg_color = Color(1, 1, 1, 1)
@@ -2243,8 +2259,8 @@ texture = ExtResource("4_dw050")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"right_ce"
-frame_progress = 0.09995682
+animation = &"up-walk"
+frame_progress = 0.23867041
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)
@@ -2264,7 +2280,7 @@ scale = Vector2(0.33, 0.33)
 texture = ExtResource("6_2hs0m")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1395801368]
-position = Vector2(0, 5.5)
+position = Vector2(0, 6)
 shape = SubResource("RectangleShape2D_2hs0m")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1681355530]
@@ -2292,3 +2308,14 @@ show_percentage = false
 visible = false
 scale = Vector2(0.1, 0.1)
 texture = ExtResource("7_1jxqw")
+
+[node name="AudioManager" type="Node" parent="." unique_id=1943837600]
+script = ExtResource("9_b26j0")
+light_impacts = Array[AudioStream]([ExtResource("10_dx0e4"), ExtResource("11_jm5j8"), ExtResource("12_7hik5")])
+heavy_impacts = Array[AudioStream]([ExtResource("13_qtqh7"), ExtResource("14_2wuci"), ExtResource("15_iruf7")])
+light_whiffs = Array[AudioStream]([ExtResource("16_j5n4i")])
+heavy_whiffs = Array[AudioStream]([ExtResource("17_634y6")])
+blocks = Array[AudioStream]([ExtResource("18_efrwb"), ExtResource("19_hiqhm"), ExtResource("20_tkwlq")])
+dashes = Array[AudioStream]([ExtResource("21_hl5qd"), ExtResource("22_ek41f")])
+footsteps_run = Array[AudioStream]([ExtResource("23_khis8")])
+footsteps_walk = Array[AudioStream]([ExtResource("24_b88wv")])

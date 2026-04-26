@@ -112,7 +112,7 @@ func _physics_process(_delta: float):
 	if Input.is_key_pressed(KEY_9):
 		add_ult_charge(max_ult_charge)
 		
-	# SUKUNA LOGIC
+	# KING OF CURSES LOGIC
 	if is_sukuna:
 		if is_domain_active:
 			domain_tick_timer += _delta
@@ -126,7 +126,7 @@ func _physics_process(_delta: float):
 						
 			if Input.is_action_just_pressed("skill_2"):
 				fire_fuga()
-				return
+				return 
 				
 		else:
 			direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -135,59 +135,51 @@ func _physics_process(_delta: float):
 			if Input.is_action_pressed("attack") and dismantle_cooldown <= 0:
 				dismantle_cooldown = 0.15
 				fire_sukuna_slash(false)
-				
-			if Input.is_action_just_pressed("skill_1"):
+			elif Input.is_action_just_pressed("skill_1"):
 				fire_sukuna_slash(true)
-				
-			if Input.is_action_just_pressed("skill_3"):
+			elif Input.is_action_just_pressed("skill_3"):
 				activate_domain_expansion()
 				
 		update_animation()
 		move_and_slide()
-		return
+		return 
 		
-	# NORMAL YUJI LOGIC
-
+	# VESSEL LOGIC
 	if Input.is_action_just_pressed("skill_2") and ce_cooldown <= 0 and not is_cursed_enhanced:
 		activate_cursed_energy()
-		return
-		
-	if Input.is_key_pressed(KEY_R):
-		if current_manji_cooldown <= 0:
-			enter_manji_stance()
-			return
+	elif Input.is_action_just_pressed("special_r") and current_manji_cooldown <= 0:
+		enter_manji_stance()
 			
 	if not is_using_skill:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		
 		if Input.is_action_pressed("sprint") and direction != Vector2.ZERO and punch_cooldown <= 0 and not is_attacking:
 			speed = run_speed
 		else:
 			speed = walk_speed
-		velocity = direction * speed
+			
 		if is_attacking or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
-					velocity = direction * (speed * 0.3)
-					$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
+			velocity = direction * (speed * 0.3)
+			$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
+			
 		elif Input.is_key_pressed(KEY_F):
+			if not is_blocking: 
+				$AudioManager.play_random_sound($AudioManager.light_whiffs, 0.8, 0.1, -5.0)
 			is_blocking = true
 			velocity = direction * (speed * 0.3)
 		else:
 			is_blocking = false
 			velocity = direction * speed
-		if Input.is_key_pressed(KEY_SPACE) and current_dash_cooldown <= 0:
+			
+		if Input.is_key_pressed(KEY_Q) and current_dash_cooldown <= 0:
+			$AudioManager.play_random_sound($AudioManager.dashes)
 			perform_dash()
-			return 
-			
-		if Input.is_action_just_pressed("skill_1") and current_barrage_cooldown <= 0:
+		elif Input.is_action_just_pressed("skill_1") and current_barrage_cooldown <= 0:
 			perform_barrage()
-			return
-			
-		if Input.is_action_just_pressed("skill_3") and current_leap_cooldown <= 0:
+		elif Input.is_action_just_pressed("skill_3") and current_leap_cooldown <= 0:
 			perform_leap()
-			return
-			
-		if Input.is_action_just_pressed("skill_4") and current_ult_charge >= max_ult_charge:
-			transform_sukuna()
-			return
+		elif Input.is_action_pressed("attack") and not is_attacking and punch_cooldown <= 0:
+			perform_punch()
 			
 		if current_combo > 0 and not is_attacking:
 			time_since_last_hit += _delta
@@ -195,12 +187,10 @@ func _physics_process(_delta: float):
 				current_combo = 0
 				combo_target = null
 				
-		if Input.is_action_pressed("attack") and not is_attacking and punch_cooldown <= 0:
-			perform_punch()
-			
 	if is_barraging:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = direction * (speed * 0.6) 
+		
 	if is_leaping and ($AnimatedSprite2D.animation == "knife-stance" or $AnimatedSprite2D.animation == "knife-leap-land"):
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = direction * (speed * 0.2)
@@ -302,6 +292,7 @@ func perform_punch():
 		anim_to_play += "_ce"
 		
 	$AnimatedSprite2D.play(anim_to_play)
+	$AudioManager.play_random_sound($AudioManager.light_whiffs)
 	$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
 	
 	$AimPivot/AimSprite.show() 
@@ -342,13 +333,29 @@ func update_animation():
 
 
 func _on_frame_changed():
-	if not is_attacking: return
+	var current_anim = $AnimatedSprite2D.animation
+	var current_frame = $AnimatedSprite2D.frame
 	
-	var anim = $AnimatedSprite2D.animation
-	var frame = $AnimatedSprite2D.frame
-	
-	if anim.begins_with("m1") and frame == 2:
-		execute_hitbox()
+	if current_anim.begins_with("up-run"):
+		if current_frame in [0, 2, 4]: 
+			$AudioManager.play_random_sound($AudioManager.footsteps_run, 1.0, 0.1, -8.0)
+			
+	elif current_anim.contains("run"):
+		if current_frame in [2, 6, 7]: 
+			$AudioManager.play_random_sound($AudioManager.footsteps_run, 1.0, 0.1, -8.0)
+	elif current_anim.begins_with("up-walk"):
+		if current_frame in [0, 2, 4]:
+			$AudioManager.play_random_sound($AudioManager.footsteps_walk)
+			
+	elif current_anim.contains("walk"):
+		if current_frame in [0, 2, 4, 6]:
+			$AudioManager.play_random_sound($AudioManager.footsteps_walk)
+	if current_anim.begins_with("m1"):
+		print("Punch animation playing,Current Frame: ", current_frame)
+		
+		if current_frame == 1: 
+			print("execute_hitbox() now!")
+			execute_hitbox()
 		
 func execute_hitbox():
 	var hit_enemy = false
@@ -372,7 +379,10 @@ func execute_hitbox():
 					
 				enemies_hit_this_punch.append(enemy)
 				hit_enemy = true
-				
+				if is_cursed_enhanced:
+					$AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1) # Deeper impact!
+				else:
+					$AudioManager.play_random_sound($AudioManager.light_impacts)
 				var knockback_distance = 6.0
 				var base_damage = 10 
 				
