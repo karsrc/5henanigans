@@ -10,7 +10,12 @@ shader = ExtResource("4_1bvp3")
 shader_parameter/curvature = 4.0
 shader_parameter/scanline_count = 256.0
 shader_parameter/scanline_strength = 0.2
+shader_parameter/brightness_boost = 1.25
 shader_parameter/vignette_multiplier = 1.2
+
+[sub_resource type="Environment" id="Environment_1bvp3"]
+glow_blend_mode = 0
+glow_hdr_threshold = 1.5
 
 [node name="Main" type="Node" unique_id=1435858522]
 
@@ -34,3 +39,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=761279051]
+environment = SubResource("Environment_1bvp3")

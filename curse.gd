@@ -1,6 +1,12 @@
 extends CharacterBody2D
 
 @onready var health_bar = $ProgressBar
+@onready var anim = $AnimatedSprite2D
+
+@export_enum("slime", "dragon") var enemy_type: String = "slime"
+
+var color_prefix: String = ""
+var is_spawning: bool = true
 
 var attack_cooldown: float = 1.0 
 var current_attack_cooldown: float = 0.0
@@ -15,14 +21,33 @@ var separation_distance: float = 30
 var is_slowed: bool = false
 var is_preparing_attack: bool = false
 
-
 func _ready():
 	player = get_tree().get_first_node_in_group("player")
 	current_hp = max_hp
 	health_bar.max_value = max_hp
 	health_bar.value = current_hp
 
+	var slime_colors = ["green", "blue", "orange", "brown"]
+	var dragon_colors = ["yellow", "green", "purple"]
+	
+	var chosen_color = ""
+	if enemy_type == "slime":
+		chosen_color = slime_colors[randi() % slime_colors.size()]
+	else:
+		chosen_color = dragon_colors[randi() % dragon_colors.size()]
+		
+	color_prefix = enemy_type + "_" + chosen_color + "_"
+	
+	var spawn_anim = "spawn1" if randi() % 2 == 0 else "spawn2"
+	anim.play(color_prefix + spawn_anim)
+	
+	await anim.animation_finished
+	is_spawning = false
+
 func _physics_process(delta: float):
+	if is_spawning or current_hp <= 0:
+		return
+
 	if current_attack_cooldown > 0:
 		current_attack_cooldown -= delta
 		
@@ -59,7 +84,20 @@ func _physics_process(delta: float):
 		
 	if not is_stunned:
 		move_and_slide()
+		
+	update_animation()
 
+func update_animation():
+	if is_spawning or is_preparing_attack or is_stunned or current_hp <= 0:
+		return 
+		
+	if player:
+		anim.flip_h = global_position.x > player.global_position.x
+
+	if velocity.length() > 10:
+		anim.play(color_prefix + "walk")
+	else:
+		anim.play(color_prefix + "idle")
 func flash():
 	$AnimatedSprite2D.modulate = Color(5,5,5)
 	await get_tree().create_timer(0.05, false, false, true).timeout
@@ -71,18 +109,23 @@ func flash():
 
 func take_damage(damage_amount: int):
 	current_hp -= damage_amount
-	
 	health_bar.value = current_hp
-	
+	flash()
 	if current_hp <= 0:
 		die()
 		
 func die():
+	velocity = Vector2.ZERO
+	var death_anim = "death1" if randi() % 2 == 0 else "death2"
+	anim.play(color_prefix + death_anim)
+	
+	await anim.animation_finished
 	queue_free()
 
 func stun(duration: float):
 	if is_stunned: return
 	is_stunned = true
+	anim.play(color_prefix + "hurt")
 	await get_tree().create_timer(duration, false, false, true).timeout
 	is_stunned = false
 
@@ -97,10 +140,17 @@ func apply_slow():
 
 func prepare_and_attack():
 	is_preparing_attack = true
+	
+	var attack_anim = color_prefix + "attack"
+	anim.play(attack_anim)
+	
 	await get_tree().create_timer(0.5, false, false, true).timeout
 	if not is_instance_valid(self): return
+	
 	if player and global_position.distance_to(player.global_position) <= attack_range:
 		if player.has_method("take_damage"):
 			player.take_damage(5)
+			
+	await anim.animation_finished
 	current_attack_cooldown = attack_cooldown
 	is_preparing_attack = false
