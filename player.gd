@@ -7,6 +7,7 @@ extends CharacterBody2D
 @onready var health_bar = $CanvasLayer/ProgressBar
 @onready var awakening_bar = $CanvasLayer/AwakeningBar
 @onready var tile_map = get_parent().get_node("board") 
+@onready var black_flash_scene = preload("res://black_flash_sparks.tscn")
 
 
 var is_under_overlay: bool = false
@@ -62,14 +63,11 @@ var is_countering: bool = false
 var manji_damage: int = 25
 
 # Ultimate
-var is_sukuna: bool = false
-var is_domain_active: bool = false
-var domain_tick_timer: float = 0
-var ult_duration: float = 15
-var dismantle_cooldown: float = 0
-var base_speed: int = 300
 var max_ult_charge: int = 2000
 var current_ult_charge: int = 0
+var is_in_the_zone: bool = false
+var zone_duration: float = 12.0
+var zone_timer: float = 0.0
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -89,7 +87,6 @@ func _physics_process(_delta: float):
 		aim_pivot.look_at(get_global_mouse_position())
 	
 	# --- TICK COOLDOWNS ---
-	if dismantle_cooldown > 0: dismantle_cooldown -= _delta
 	if current_leap_cooldown > 0: current_leap_cooldown -= _delta
 	if current_barrage_cooldown > 0: current_barrage_cooldown -= _delta
 	if current_dash_cooldown > 0: current_dash_cooldown -= _delta
@@ -100,6 +97,10 @@ func _physics_process(_delta: float):
 		ce_duration -= _delta
 		if ce_duration <= 0:
 			deactivate_cursed_energy()
+	if zone_timer > 0:
+		zone_timer -= _delta
+		if zone_timer <= 0 and is_in_the_zone:
+			exit_the_zone()
 	
 	var player_tile_pos = tile_map.local_to_map(tile_map.to_local(global_position))
 	var has_tile_above = tile_map.get_cell_source_id(3, player_tile_pos) != -1
@@ -110,44 +111,16 @@ func _physics_process(_delta: float):
 	if Input.is_key_pressed(KEY_9):
 		add_ult_charge(max_ult_charge)
 		
-	# KING OF CURSES LOGIC
-	if is_sukuna:
-		if is_domain_active:
-			domain_tick_timer += _delta
-			if domain_tick_timer >= 1.0:
-				domain_tick_timer = 0.0
-				shake_camera(5)
-				var all_enemies = get_tree().get_nodes_in_group("enemy")
-				for enemy in all_enemies:
-					if is_instance_valid(enemy) and enemy.has_method("take_damage"):
-						enemy.take_damage(15)
-						
-			if Input.is_action_just_pressed("skill_2"):
-				fire_fuga()
-				return 
-				
-		else:
-			direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-			velocity = direction * speed
-			
-			if Input.is_action_pressed("attack") and dismantle_cooldown <= 0:
-				dismantle_cooldown = 0.15
-				fire_sukuna_slash(false)
-			elif Input.is_action_just_pressed("skill_1"):
-				fire_sukuna_slash(true)
-			elif Input.is_action_just_pressed("skill_3"):
-				activate_domain_expansion()
-				
-		update_animation()
-		move_and_slide()
-		return 
-		
 	# VESSEL LOGIC
 	if Input.is_action_just_pressed("skill_2") and ce_cooldown <= 0 and not is_cursed_enhanced:
 		activate_cursed_energy()
 	elif Input.is_action_just_pressed("special_r") and current_manji_cooldown <= 0:
 		enter_manji_stance()
-			
+	if Input.is_action_just_pressed("skill_4") and not is_using_skill:
+		if current_ult_charge >= max_ult_charge and not is_in_the_zone:
+			enter_the_zone()
+		elif current_ult_charge < max_ult_charge:
+			pass
 	if not is_using_skill:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		
@@ -260,10 +233,13 @@ func perform_dash():
 
 func shake_camera(intensity: float):
 	var camera = $Camera2D
-	if camera:
-		camera.offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
-		var tween = get_tree().create_tween()
-		tween.tween_property(camera, "offset", Vector2.ZERO, 0.05)
+	if not camera: return
+	var shake_tween = create_tween()
+	for i in range(4):
+		var offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
+		shake_tween.tween_property(camera, "offset", offset, 0.04)
+		intensity *= 0.5
+	shake_tween.tween_property(camera, "offset", Vector2.ZERO, 0.04)
 
 func perform_punch():
 	is_attacking = true
@@ -312,6 +288,7 @@ func perform_punch():
 	
 	if is_attacking: 
 		execute_hitbox()
+	
 
 func update_animation():
 	if is_attacking or is_leaping or is_barraging or is_countering or is_dashing or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
@@ -368,6 +345,7 @@ func _on_frame_changed():
 			execute_hitbox()
 func execute_hitbox():
 	var hit_enemy = false
+	var last_hit_pos = Vector2.ZERO
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
 	
 	var locked_aim_direction = Vector2.RIGHT.rotated(aim_pivot.rotation)
@@ -388,10 +366,13 @@ func execute_hitbox():
 					
 				enemies_hit_this_punch.append(enemy)
 				hit_enemy = true
+				last_hit_pos = enemy.global_position
+				
 				if is_cursed_enhanced:
-					$AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1) # Deeper impact!
+					$AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1) 
 				else:
 					$AudioManager.play_random_sound($AudioManager.light_impacts)
+					
 				var knockback_distance = 6.0
 				var base_damage = 10 
 				
@@ -415,10 +396,37 @@ func execute_hitbox():
 				if enemy.has_method("apply_slow"):
 					enemy.apply_slow()
 	if hit_enemy:
-		Engine.time_scale = 0.2
-		await get_tree().create_timer(0.02, true, false, true).timeout
+		var shake_intensity = 5.0
+		if current_combo >= 3: shake_intensity = 14.0
+		if is_cursed_enhanced: shake_intensity += 10.0
+		if is_in_the_zone: shake_intensity += 20.0 
+		shake_camera(shake_intensity)
+		if (is_cursed_enhanced or is_in_the_zone) and last_hit_pos != Vector2.ZERO:
+			var recoil_dir = -global_position.direction_to(last_hit_pos)
+			var recoil_force = 200.0 if is_in_the_zone else 150.0
+			velocity += recoil_dir * recoil_force
+		if is_in_the_zone:
+			$AudioManager.play_random_sound($AudioManager.heavy_impacts, 1.5, 0.1, -2.0)
+			
+			if last_hit_pos != Vector2.ZERO:
+				var sparks = black_flash_scene.instantiate()
+				sparks.global_position = last_hit_pos
+				get_tree().current_scene.add_child(sparks) 
+			
+			for hit_target in enemies_hit_this_punch:
+				if is_instance_valid(hit_target) and hit_target.has_node("AnimatedSprite2D"):
+					var sprite = hit_target.get_node("AnimatedSprite2D")
+					var flash_tween = create_tween()
+					sprite.self_modulate = Color(0, 0, 0, 1) 
+					flash_tween.tween_property(sprite, "self_modulate", Color(5, 0.5, 0.5, 1), 0.1) 
+					flash_tween.tween_property(sprite, "self_modulate", Color(1, 1, 1, 1), 0.1)
+		var stop_duration = 0.03
+		if is_cursed_enhanced: stop_duration = 0.08
+		if is_in_the_zone: stop_duration = 0.18 
+		
+		Engine.time_scale = 0.1
+		await get_tree().create_timer(stop_duration, true, false, true).timeout
 		Engine.time_scale = 1.0
-
 func _on_animation_finished():
 	if $AnimatedSprite2D.animation.begins_with("m1"):
 			$AimPivot/AimSprite.hide()
@@ -428,6 +436,41 @@ func _on_animation_finished():
 				punch_cooldown = 0.1 
 				
 			is_attacking = false
+
+func enter_the_zone():
+	is_using_skill = true
+	is_in_the_zone = true
+	zone_timer = zone_duration
+	current_ult_charge = 0
+	awakening_bar.value = 0
+	velocity = Vector2.ZERO
+
+	var flash = ColorRect.new()
+	flash.color = Color(0, 0, 0, 1) 
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	flash.z_index = 100
+	$CanvasLayer.add_child(flash)
+
+	Engine.time_scale = 0.05
+	shake_camera(25.0)
+
+	await get_tree().create_timer(0.05, true, false, true).timeout
+	
+	flash.queue_free()
+	Engine.time_scale = 1.0
+	
+	$AnimatedSprite2D.speed_scale = 1.5
+	$AnimatedSprite2D.modulate = Color(1.8, 0.6, 0.6)
+	is_using_skill = false
+
+func exit_the_zone():
+	is_in_the_zone = false
+	$AnimatedSprite2D.speed_scale = 1.0
+	
+	if is_cursed_enhanced:
+		$AnimatedSprite2D.modulate = Color(1.2, 1.5, 2)
+	else:
+		$AnimatedSprite2D.modulate = Color(1, 1, 1)
 
 func trigger_hit_stop():
 	Engine.time_scale = 0.05
@@ -587,114 +630,8 @@ func toggle_cursed_stance():
 	await get_tree().create_timer(0.4, false, false, true).timeout
 	is_using_skill = false
 
-func transform_sukuna():
-	is_using_skill = true
-	velocity = Vector2.ZERO
-	current_ult_charge = 0
-	awakening_bar.value = 0
-	is_sukuna = true
-	Engine.time_scale = 0.05
-	shake_camera(25)
-	current_hp = max_hp
-	health_bar.value = current_hp
-	await get_tree().create_timer(0.05, true, false, true).timeout
-	Engine.time_scale = 1
-	is_using_skill = false
-	await get_tree().create_timer(ult_duration, false, false, true).timeout
-	end_sukuna()
-	
-func end_sukuna():
-	if not is_sukuna: return
-	is_sukuna = false
-	is_domain_active = false
-	speed = base_speed
-	var shrine = get_node_or_null("MalevolentShrineVisual")
-	if shrine:
-		shrine.queue_free()
-
-func fire_sukuna_slash(is_heavy: bool):
-	is_attacking = true
-	
-	var proj = Area2D.new()
-	var collision = CollisionShape2D.new()
-	var shape = RectangleShape2D.new()
-	
-	shape.size = Vector2(100, 100) if is_heavy else Vector2(20, 60)
-	collision.shape = shape
-	proj.add_child(collision)
-	
-	#TEXTURE NEEDED here
-	var sprite = Sprite2D.new()
-	sprite.name = "Texture"
-	proj.add_child(sprite)
-	get_tree().current_scene.add_child(proj)
-	proj.global_position = global_position
-	var dir = global_position.direction_to(get_global_mouse_position())
-	proj.rotation = dir.angle()
-	
-	proj.body_entered.connect(func(body):
-		if body.is_in_group("enemy") and body.has_method("take_damage"):
-			body.take_damage(100 if is_heavy else 15)
-			var shove = dir * (150 if is_heavy else 20)
-			body.global_position += shove
-	) 
-	var travel_distance = dir * (800 if is_heavy else 400)
-	var tween = get_tree().create_tween()
-	tween.tween_property(proj, "global_position", proj.global_position + travel_distance, 0.2)
-	tween.tween_callback(proj.queue_free)
-
-func activate_domain_expansion():
-	if is_domain_active: return
-	is_domain_active = true
-	is_using_skill = true
-	velocity = Vector2.ZERO
-	domain_tick_timer = 0
-	Engine.time_scale = 0.05
-	shake_camera(20)
-	
-	var shrine = Sprite2D.new()
-	shrine.texture = load("res://icon.svg")
-	shrine.scale = Vector2(3, 8)
-	shrine.modulate = Color(0,0 ,0, 0.8)
-	shrine.position = Vector2(0, -100)
-	shrine.z_index = -1
-	shrine.name = "MalevolentShrineVisual"
-	add_child(shrine)
-	await get_tree().create_timer(0.05, true, false, true).timeout
-	Engine.time_scale = 1
-	is_using_skill = false
-	
-func fire_fuga():
-	is_using_skill = true
-	velocity = Vector2.ZERO
-	Engine.time_scale = 0.05
-	$AnimatedSprite2D.modulate = Color(1, 0.5, 0)
-	var blast = ColorRect.new()
-	blast.color = Color(1, 0.2, 0, 0)
-	blast.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	$CanvasLayer.add_child(blast)
-	
-	await get_tree().create_timer(0.05, true, false, true).timeout
-	
-	Engine.time_scale = 1
-	shake_camera(20)
-	blast.color = Color(1, 0.8, 0, 1)
-	
-	var all_enemies = get_tree().get_nodes_in_group("enemy")
-	for enemy in all_enemies:
-		if is_instance_valid(enemy) and enemy.has_method("take_damage"):
-			enemy.take_damage(9999)
-			
-	var tween = get_tree().create_tween()
-	tween.tween_property(blast, "color", Color(1, 0.2, 0, 0), 1)
-	tween.tween_callback(blast.queue_free)
-	await get_tree().create_timer(1, false, false, true).timeout
-	is_using_skill = false
-	
-	end_sukuna()
-
 func add_ult_charge(amount: int):
-	if is_sukuna or current_ult_charge >= max_ult_charge:
+	if current_ult_charge >= max_ult_charge:
 		return
 		
 	current_ult_charge += amount

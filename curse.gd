@@ -108,6 +108,9 @@ func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, kn
 	current_hp -= damage_amount
 	health_bar.value = current_hp
 	
+	var player_node = get_tree().get_first_node_in_group("player")
+	if player_node and player_node.has_method("shake_camera"):
+		player_node.shake_camera(6)
 	var camera = get_viewport().get_camera_2d()
 	if camera and camera.has_method("apply_shake"):
 		camera.apply_shake(8.0)
