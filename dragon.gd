@@ -103,9 +103,17 @@ func update_animation():
 	else:
 		anim.play(color_prefix + "idle")
 
-func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, knockback_force: float = 200.0):
+func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, knockback_force: float = 250.0):
 	current_hp -= damage_amount
 	health_bar.value = current_hp
+	
+	var camera = get_viewport().get_camera_2d()
+	if camera and camera.has_method("apply_shake"):
+		camera.apply_shake(8.0) 
+	
+	var flash_tween = create_tween()
+	anim.self_modulate = Color(20, 20, 20, 1) 
+	flash_tween.tween_property(anim, "self_modulate", Color(1, 1, 1, 1), 0.1)
 	
 	if source_position != Vector2.ZERO:
 		var knockback_dir = source_position.direction_to(global_position)
@@ -113,8 +121,14 @@ func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, kn
 	
 	if current_hp <= 0:
 		die()
+	else:
+		stun(0.15)
 
 func die():
+	var camera = get_viewport().get_camera_2d()
+	if camera and camera.has_method("apply_shake"):
+		camera.apply_shake(15.0) 
+		
 	velocity = Vector2.ZERO
 	knockback_velocity = Vector2.ZERO 
 	var death_anim = "death1" if randi() % 2 == 0 else "death2"

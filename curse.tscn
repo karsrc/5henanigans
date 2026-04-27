@@ -1175,7 +1175,7 @@ position = Vector2(4, 0)
 scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_mof8b")
 animation = &"slime_orange_walk"
-frame_progress = 0.98384625
+frame_progress = 0.3163148
 
 [node name="ProgressBar" type="ProgressBar" parent="." unique_id=330291143]
 offset_left = -12.0

@@ -104,18 +104,26 @@ func update_animation():
 	else:
 		anim.play(color_prefix + "idle")
 
-# Knockback parameter
-func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, knockback_force: float = 200.0):
+func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, knockback_force: float = 250.0):
 	current_hp -= damage_amount
 	health_bar.value = current_hp
 	
-	# Physical Hit Reaction
+	var camera = get_viewport().get_camera_2d()
+	if camera and camera.has_method("apply_shake"):
+		camera.apply_shake(8.0)
+	
+	var flash_tween = create_tween()
+	anim.self_modulate = Color(20, 20, 20, 1) 
+	flash_tween.tween_property(anim, "self_modulate", Color(1, 1, 1, 1), 0.1)
+	
 	if source_position != Vector2.ZERO:
 		var knockback_dir = source_position.direction_to(global_position)
 		knockback_velocity = knockback_dir * knockback_force
 	
 	if current_hp <= 0:
 		die()
+	else:
+		stun(0.15)
 
 func die():
 	velocity = Vector2.ZERO
@@ -130,8 +138,6 @@ func stun(duration: float):
 	is_stunned = true
 	is_preparing_attack = false
 	anim.play(color_prefix + "hurt")
-	
-	# White flash will be here later
 	
 	await get_tree().create_timer(duration, false, false, true).timeout
 	
@@ -169,7 +175,6 @@ func prepare_and_attack():
 		is_preparing_attack = false
 		return
 	
-	# Deal Damage
 	if player and global_position.distance_to(player.global_position) <= attack_range:
 		if player.has_method("take_damage"):
 			player.take_damage(5)
