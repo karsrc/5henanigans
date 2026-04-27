@@ -3,26 +3,26 @@ extends CharacterBody2D
 @onready var health_bar = $ProgressBar
 @onready var anim = $AnimatedSprite2D
 
-@export_enum("slime", "dragon") var enemy_type: String = "slime"
+@export_enum("slime", "dragon") var enemy_type: String = "dragon"
 
 var color_prefix: String = ""
 var is_spawning: bool = true
 
 # Core Stats
-var max_hp: int = 30
-var current_hp: int = 30
-var speed: float = 130.0
+var max_hp: int = 45
+var current_hp: int = 45
+var speed: float = 150.0
 
 # Combat & States
 var player = null
-var attack_cooldown: float = 1.0 
+var attack_cooldown: float = 0.8 
 var current_attack_cooldown: float = 0.0
 var attack_range: float = 55.0
 var separation_distance: float = 30.0
 
-# Brawler Physics Additions
+# Brawler Physics Additions (DRAGON SPECIFIC)
 var knockback_velocity: Vector2 = Vector2.ZERO
-var knockback_friction: float = 600.0
+var knockback_friction: float = 350.0
 
 # State Flags
 var is_stunned: bool = false
@@ -73,7 +73,6 @@ func _physics_process(delta: float):
 		if distance_to_player > attack_range:
 			desired_velocity = direction_to_player * speed
 		
-		# Flocking logic
 		var separation_vector = Vector2.ZERO
 		var all_enemies = get_tree().get_nodes_in_group("enemy")
 		for ally in all_enemies:
@@ -104,12 +103,10 @@ func update_animation():
 	else:
 		anim.play(color_prefix + "idle")
 
-# Knockback parameter
 func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, knockback_force: float = 200.0):
 	current_hp -= damage_amount
 	health_bar.value = current_hp
 	
-	# Physical Hit Reaction
 	if source_position != Vector2.ZERO:
 		var knockback_dir = source_position.direction_to(global_position)
 		knockback_velocity = knockback_dir * knockback_force
@@ -119,7 +116,7 @@ func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, kn
 
 func die():
 	velocity = Vector2.ZERO
-	knockback_velocity = Vector2.ZERO
+	knockback_velocity = Vector2.ZERO 
 	var death_anim = "death1" if randi() % 2 == 0 else "death2"
 	anim.play(color_prefix + death_anim)
 	
@@ -128,10 +125,8 @@ func die():
 
 func stun(duration: float):
 	is_stunned = true
-	is_preparing_attack = false
+	is_preparing_attack = false 
 	anim.play(color_prefix + "hurt")
-	
-	# White flash will be here later
 	
 	await get_tree().create_timer(duration, false, false, true).timeout
 	
@@ -165,11 +160,11 @@ func prepare_and_attack():
 	else:
 		anim.play(color_prefix + "idle")
 		await get_tree().create_timer(0.4, false, false, true).timeout
+
 	if not is_instance_valid(self) or is_stunned or current_hp <= 0:
 		is_preparing_attack = false
 		return
 	
-	# Deal Damage
 	if player and global_position.distance_to(player.global_position) <= attack_range:
 		if player.has_method("take_damage"):
 			player.take_damage(5)

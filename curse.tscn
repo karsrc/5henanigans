@@ -1161,7 +1161,7 @@ size = Vector2(48, 9)
 
 [node name="Curse" type="CharacterBody2D" unique_id=237278958 groups=["enemy"]]
 collision_layer = 7
-collision_mask = 4
+collision_mask = 5
 script = ExtResource("1_dswov")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1489285923]
@@ -1175,7 +1175,7 @@ position = Vector2(4, 0)
 scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_mof8b")
 animation = &"slime_orange_walk"
-frame_progress = 0.25492048
+frame_progress = 0.98384625
 
 [node name="ProgressBar" type="ProgressBar" parent="." unique_id=330291143]
 offset_left = -12.0

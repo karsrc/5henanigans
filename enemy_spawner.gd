@@ -1,22 +1,56 @@
 extends Node2D
 
-var enemy_scene = preload("res://curse.tscn")
-var tile_size = 16
-var spawn_radius: float = 400
+var slime_scene = preload("res://curse.tscn")
+var dragon_scene = preload("res://dragon.tscn")
+
+# Configurable Spawner Settings
+var spawn_interval: float = 3.5 
+var dragon_chance: float = 0.15 
+
+# Proximity Settings
+var min_spawn_distance: float = 150.0 # Prevents spawning directly on Yuji
+var max_spawn_distance: float = 400.0 # Keeps them close to the action
 
 func _ready():
-	randomize()
+	$Timer.stop()
+	$Timer.wait_time = spawn_interval
+	
+	await get_tree().create_timer(5.0, false, false, true).timeout
+	$Timer.start()
 
 func _on_timer_timeout():
 	var player = get_tree().get_first_node_in_group("player")
-	if not player:
+	if not player: return
+		
+	var safe_spawns = get_tree().get_nodes_in_group("EnemySpawns")
+	if safe_spawns.size() == 0:
 		return
-	var random_angle = randf() * TAU
-	var new_enemy = enemy_scene.instantiate()
-	var spawn_radius = 16 * tile_size
-	var spawn_offset = Vector2.RIGHT.rotated(random_angle) * spawn_radius
-	var center_of_map = Vector2(7.5 * tile_size, 7.5 * tile_size)
-	var spawn_pos = center_of_map + Vector2.RIGHT.rotated(random_angle) * spawn_radius
+		
+	# 1. Filter the spawns to find the "Goldilocks Zone"
+	var valid_spawns = []
+	for spawn in safe_spawns:
+		var distance = spawn.global_position.distance_to(player.global_position)
+		if distance >= min_spawn_distance and distance <= max_spawn_distance:
+			valid_spawns.append(spawn)
+			
+	# 2. Pick a spawn point
+	var chosen_spawn = null
+	if valid_spawns.size() > 0:
+		chosen_spawn = valid_spawns.pick_random()
+	else:
+		# Fallback: If Yuji is in a weird corner and no spawns match the criteria perfectly, 
+		# just pick a completely random one so the game doesn't stop spawning enemies.
+		chosen_spawn = safe_spawns.pick_random()
+		
+	# 3. Roll for Dragon vs Slime
+	var selected_enemy_scene = null
+	if randf() < dragon_chance:
+		selected_enemy_scene = dragon_scene
+	else:
+		selected_enemy_scene = slime_scene
+		
+
+	var new_enemy = selected_enemy_scene.instantiate()
+	new_enemy.global_position = chosen_spawn.global_position
 	
-	new_enemy.global_position = spawn_pos
 	get_tree().current_scene.add_child(new_enemy)
