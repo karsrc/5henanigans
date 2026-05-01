@@ -2,7 +2,6 @@ extends BaseFighter
 
 @onready var aim_spirte = $AimPivot/AimSprite
 @onready var awakening_bar = $CanvasLayer/AwakeningBar
-@onready var tile_map = get_parent().get_node("board") 
 @onready var black_flash_scene = preload("res://black_flash_sparks.tscn")
 
 # Skill 1
@@ -52,6 +51,7 @@ func _ready() -> void:
 	$AnimatedSprite2D.frame_changed.connect(_on_frame_changed)
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
 	$AimPivot/AimSprite.hide()
+	
 
 func _physics_process(delta: float):
 	if current_leap_cooldown > 0: current_leap_cooldown -= delta
@@ -85,32 +85,6 @@ func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, at
 		
 	super.take_damage(damage_amount, knockback_force, attacker_pos)
 
-func perform_dash():
-	is_using_skill = true 
-	is_dashing = true 
-	is_invincible = true
-	current_dash_cooldown = dash_cooldown
-	
-	var dash_dir = direction
-	if dash_dir == Vector2.ZERO:
-		dash_dir = global_position.direction_to(get_global_mouse_position())
-		
-	velocity = dash_dir.normalized() * dash_speed
-	
-	var anim_name = "dash-up" if dash_dir.y < 0 else "dash"
-	if is_cursed_enhanced:
-		anim_name += "_ce"
-		
-	$AnimatedSprite2D.play(anim_name)
-	$AnimatedSprite2D.flip_h = dash_dir.x < 0
-	
-	await $AnimatedSprite2D.animation_finished 
-	
-	velocity = Vector2.ZERO 
-	is_using_skill = false
-	is_dashing = false 
-	is_invincible = false
-
 func shake_camera(intensity: float):
 	var camera = $Camera2D
 	if not camera: return
@@ -120,58 +94,6 @@ func shake_camera(intensity: float):
 		shake_tween.tween_property(camera, "offset", offset, 0.04)
 		intensity *= 0.5
 	shake_tween.tween_property(camera, "offset", Vector2.ZERO, 0.04)
-
-func perform_punch():
-	is_attacking = true
-	$AimPivot.look_at(get_global_mouse_position())
-	time_since_last_hit = 0
-	enemies_hit_this_punch.clear()
-	
-	current_combo += 1
-	if current_combo > 3:
-		current_combo = 1
-		
-	var mouse_pos = get_global_mouse_position()
-	var lunge_dir = global_position.direction_to(mouse_pos)
-	if current_combo == 2:
-		global_position += lunge_dir * 8.0
-	elif current_combo == 3:
-		global_position += lunge_dir * 18.0
-	var facing_front = mouse_pos.y > global_position.y
-	var suffix = "-front" if facing_front else ""
-	
-	var anim_to_play = "m1"
-	if current_combo == 1:
-		anim_to_play = "m1-1-front" if facing_front else "m1"
-	elif current_combo == 2:
-		anim_to_play = "m1-2" + suffix
-	elif current_combo == 3:
-		anim_to_play = "m1-3" + suffix
-		
-	if is_cursed_enhanced:
-		anim_to_play += "_ce"
-		
-	$AnimatedSprite2D.play(anim_to_play)
-	$AudioManager.play_random_sound($AudioManager.light_whiffs)
-	$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
-	
-	$AimPivot/AimSprite.show() 
-	
-	if current_combo == 1 or current_combo == 3:
-		$AimPivot/AimSprite.play("swipe1")
-		$AimPivot/AimSprite.flip_v = false
-	elif current_combo == 2:
-		$AimPivot/AimSprite.play("swipe2")
-		$AimPivot/AimSprite.flip_v = true
-
-	await get_tree().create_timer(0.15, false, false, true).timeout
-	
-	if is_attacking: 
-		execute_hitbox()
-	
-
-
-
 
 func _on_frame_changed():
 	var current_anim = $AnimatedSprite2D.animation
@@ -338,8 +260,7 @@ func perform_barrage():
 	
 	$AimPivot/AimSprite.show()
 	
-	var anim_name = "barrage_ce" if is_cursed_enhanced else "barrage"
-	$AnimatedSprite2D.play(anim_name)
+	$AnimatedSprite2D.play("barrage" + anim_suffix)
 	
 	for i in range(barrage_hits):
 		aim_pivot.look_at(get_global_mouse_position())
@@ -389,10 +310,7 @@ func enter_manji_stance():
 	current_manji_cooldown = manji_cooldown
 	is_countering = true
 	
-	var suffix = "_ce" if is_cursed_enhanced else ""
-	
-	$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
-	$AnimatedSprite2D.play("manji-stance" + suffix)
+	$AnimatedSprite2D.play("manji-stance" + anim_suffix)
 	
 	await get_tree().create_timer(0.4, false, false, true).timeout
 	
@@ -407,8 +325,7 @@ func trigger_manji_kick(attacker_pos: Vector2):
 	
 	$AudioManager.play_random_sound($AudioManager.heavy_whiffs, 0.8, 0.1)
 	
-	var suffix = "_ce" if is_cursed_enhanced else ""
-	$AnimatedSprite2D.play("manji-kick" + suffix)
+	$AnimatedSprite2D.play("manji-kick" + anim_suffix)
 	
 	await $AnimatedSprite2D.animation_finished
 	is_using_skill = false
@@ -516,14 +433,3 @@ func deactivate_cursed_energy():
 	ce_cooldown = 15
 	if ce_tween: ce_tween.kill()
 	$AnimatedSprite2D.modulate = Color(1,1,1)
-
-func fade_tilemap_layer(layer_index: int, target_alpha: float):
-	var tween = create_tween()
-	var current_color = tile_map.get_layer_modulate(layer_index)
-	var target_color = Color(current_color.r, current_color.g, current_color.b, target_alpha)
-	tween.tween_method(
-		func(c): tile_map.set_layer_modulate(layer_index, c),
-		current_color,
-		target_color,
-		0.25
-	)

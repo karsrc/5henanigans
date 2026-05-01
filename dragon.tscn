@@ -1984,12 +1984,17 @@ bg_color = Color(1, 1, 1, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_653ly"]
 bg_color = Color(1, 0, 0, 1)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_63m02"]
-size = Vector2(48, 14.5)
+[sub_resource type="CircleShape2D" id="CircleShape2D_d8vd7"]
+radius = 24.03253
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_d8vd7"]
+radius = 26.0
+height = 76.0
 
 [node name="Curse" type="CharacterBody2D" unique_id=237278958 groups=["enemy"]]
 collision_layer = 7
 collision_mask = 7
+motion_mode = 1
 script = ExtResource("1_d8vd7")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1489285923]
@@ -2014,5 +2019,12 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_653ly")
 show_percentage = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1759117696]
-position = Vector2(4, 5.25)
-shape = SubResource("RectangleShape2D_63m02")
+position = Vector2(2, -6)
+shape = SubResource("CircleShape2D_d8vd7")
+
+[node name="SoftCollision" type="Area2D" parent="." unique_id=717716061]
+y_sort_enabled = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SoftCollision" unique_id=1219303168]
+position = Vector2(2, -15)
+shape = SubResource("CapsuleShape2D_d8vd7")

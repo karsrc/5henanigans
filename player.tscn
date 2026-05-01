@@ -2215,8 +2215,8 @@ animations = [{
 "speed": 8.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_2hs0m"]
-size = Vector2(8, 4)
+[sub_resource type="CircleShape2D" id="CircleShape2D_dx0e4"]
+radius = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2hs0m"]
 bg_color = Color(1, 1, 1, 1)
@@ -2231,7 +2231,9 @@ bg_color = Color(1, 1, 1, 1)
 bg_color = Color(1, 0, 0, 1)
 
 [node name="Player" type="CharacterBody2D" unique_id=357666152 groups=["player"]]
+y_sort_enabled = true
 collision_mask = 3
+motion_mode = 1
 script = ExtResource("1_onrkg")
 
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
@@ -2259,7 +2261,7 @@ texture = ExtResource("4_dw050")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"barrage"
+animation = &"block"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)
@@ -2280,7 +2282,7 @@ texture = ExtResource("6_2hs0m")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1395801368]
 position = Vector2(0, 6)
-shape = SubResource("RectangleShape2D_2hs0m")
+shape = SubResource("CircleShape2D_dx0e4")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1681355530]
 layer = 100

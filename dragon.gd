@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 @onready var health_bar = $ProgressBar
 @onready var anim = $AnimatedSprite2D
+@onready var soft_collision = $SoftCollision
 
 @export_enum("slime", "dragon") var enemy_type: String = "dragon"
 
@@ -12,6 +13,7 @@ var is_spawning: bool = true
 var max_hp: int = 45
 var current_hp: int = 45
 var speed: float = 150.0
+var soft_push_force: float = 400.0
 
 # Combat & States
 var player = null
@@ -87,7 +89,14 @@ func _physics_process(delta: float):
 			
 		if current_attack_cooldown <= 0 and distance_to_player <= attack_range and not is_slowed:
 			prepare_and_attack()
-		
+	var push_vector = Vector2.ZERO
+	if soft_collision:
+		var overlapping_bodies = soft_collision.get_overlapping_bodies()
+		for body in overlapping_bodies:
+			if body != self and body is CharacterBody2D:
+				push_vector += global_position.direction_to(body.global_position) * -1
+				
+	velocity += push_vector.normalized() * soft_push_force * delta
 	move_and_slide()
 	update_animation()
 

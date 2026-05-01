@@ -17,7 +17,8 @@ shader_parameter/vignette_multiplier = 1.2
 glow_blend_mode = 0
 glow_hdr_threshold = 1.5
 
-[node name="Main" type="Node" unique_id=1435858522]
+[node name="Main" type="Node2D" unique_id=1381493787]
+y_sort_enabled = true
 
 [node name="board" parent="." unique_id=1922163880 instance=ExtResource("1_ig7tw")]
 position = Vector2(0, -450)
@@ -27,6 +28,7 @@ position = Vector2(396.00006, 386.00006)
 scale = Vector2(3, 3)
 
 [node name="Spawner" parent="." unique_id=264778539 instance=ExtResource("2_1bvp3")]
+y_sort_enabled = true
 
 [node name="CRT_Overlay" type="CanvasLayer" parent="." unique_id=886379498]
 layer = 100

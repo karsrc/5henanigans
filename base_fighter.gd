@@ -8,6 +8,8 @@ class_name BaseFighter
 @onready var health_bar = $CanvasLayer/ProgressBar
 @onready var anim_sprite = $AnimatedSprite2D
 @onready var audio_manager = $AudioManager
+@onready var tile_map = get_parent().get_node_or_null("board")
+
 
 # UNIVERSAL STATS & STATES
 @export var max_hp: int = 160
@@ -17,11 +19,12 @@ class_name BaseFighter
 @export var dash_cooldown: float = 1.2
 @export var combo_drop_time: float = 1.0
 
+var last_anim_dir: String = "right"
 var anim_suffix: String = ""
 var current_hp: int
 var direction: Vector2 = Vector2(1,1)
 var speed: float = walk_speed
-
+var is_under_overlay: bool = false
 var is_attacking: bool = false
 var is_blocking: bool = false
 var is_dashing: bool = false
@@ -45,7 +48,12 @@ func _physics_process(delta: float):
 	
 	if current_dash_cooldown > 0: current_dash_cooldown -= delta
 	if punch_cooldown > 0: punch_cooldown -= delta
-	
+	if tile_map:
+		var player_tile_pos = tile_map.local_to_map(tile_map.to_local(global_position))
+		var has_tile_above = tile_map.get_cell_source_id(3, player_tile_pos) != -1
+		if has_tile_above != is_under_overlay:
+			is_under_overlay = has_tile_above
+			fade_tilemap_layer(3, 0.3 if is_under_overlay else 1)
 	if crosshair: crosshair.global_position = get_global_mouse_position()
 	if aim_pivot and not is_attacking and not is_using_skill:
 		aim_pivot.look_at(get_global_mouse_position())
@@ -209,20 +217,34 @@ func update_animation():
 		if speed == run_speed:
 			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
 				anim = "up-run"
+				last_anim_dir = "up"
 			else:
 				anim = "right-run"
+				last_anim_dir = "right"
 		else:
 			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
 				anim = "up-walk" 
+				last_anim_dir = "up"
 			else:
-				anim = "right-walk" 
+				anim = "right-walk"
+				last_anim_dir = "right"
 
 		if velocity.x != 0 and anim_sprite:
 			anim_sprite.flip_h = velocity.x < 0
 	else:
-		anim = "right"
+		anim = last_anim_dir
+
 	if anim_sprite:
 		anim_sprite.play(anim + anim_suffix)
 
-	if anim_sprite:
-		anim_sprite.play(anim)
+func fade_tilemap_layer(layer_index: int, target_alpha: float):
+	if not tile_map: return
+	var tween = create_tween()
+	var current_color = tile_map.get_layer_modulate(layer_index)
+	var target_color = Color(current_color.r, current_color.g, current_color.b, target_alpha)
+	tween.tween_method(
+		func(c): tile_map.set_layer_modulate(layer_index, c),
+		current_color,
+		target_color,
+		0.25
+	)

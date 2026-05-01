@@ -2,6 +2,8 @@ extends CharacterBody2D
 
 @onready var health_bar = $ProgressBar
 @onready var anim = $AnimatedSprite2D
+@onready var soft_collision = $SoftCollision
+
 
 @export_enum("slime", "dragon") var enemy_type: String = "slime"
 
@@ -12,6 +14,7 @@ var is_spawning: bool = true
 var max_hp: int = 30
 var current_hp: int = 30
 var speed: float = 130.0
+var soft_push_force: float = 400.0
 
 # Combat & States
 var player = null
@@ -73,7 +76,6 @@ func _physics_process(delta: float):
 		if distance_to_player > attack_range:
 			desired_velocity = direction_to_player * speed
 		
-		# Flocking logic
 		var separation_vector = Vector2.ZERO
 		var all_enemies = get_tree().get_nodes_in_group("enemy")
 		for ally in all_enemies:
@@ -88,7 +90,15 @@ func _physics_process(delta: float):
 			
 		if current_attack_cooldown <= 0 and distance_to_player <= attack_range and not is_slowed:
 			prepare_and_attack()
-		
+	var push_vector = Vector2.ZERO
+	if soft_collision:
+		var overlapping_bodies = soft_collision.get_overlapping_bodies()
+		for body in overlapping_bodies:
+			if body != self and body.is_in_group("enemy"):
+				push_vector += global_position.direction_to(body.global_position) * -1
+				
+	velocity += push_vector.normalized() * soft_push_force * delta
+	
 	move_and_slide()
 	update_animation()
 
@@ -185,7 +195,10 @@ func prepare_and_attack():
 	if enemy_type == "dragon":
 		await anim.animation_finished
 	else:
-		await get_tree().create_timer(0.2, false, false, true).timeout
+		if get_tree() == null:
+			return
+		else:
+			await get_tree().create_timer(0.2, false, false, true).timeout
 		
 	current_attack_cooldown = attack_cooldown
 	is_preparing_attack = false
