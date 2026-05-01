@@ -1,37 +1,9 @@
-extends CharacterBody2D
+extends BaseFighter
 
-@onready var crosshair = $Crosshair
-@onready var aim_pivot = $AimPivot
 @onready var aim_spirte = $AimPivot/AimSprite
-@onready var attack_area = $AimPivot/AttackArea
-@onready var health_bar = $CanvasLayer/ProgressBar
 @onready var awakening_bar = $CanvasLayer/AwakeningBar
 @onready var tile_map = get_parent().get_node("board") 
 @onready var black_flash_scene = preload("res://black_flash_sparks.tscn")
-
-
-var is_under_overlay: bool = false
-var direction: Vector2 = Vector2(1,1)
-var walk_speed: float = 180
-var run_speed: float = 300
-var speed: float = walk_speed
-var max_hp: int = 160
-var current_hp: int = 160
-var is_attacking: bool = false
-var current_combo: int = 0
-var combo_target: Node2D = null
-var time_since_last_hit: float = 0
-var combo_drop_time: float = 1
-var is_invincible: bool = false
-var is_using_skill: bool = false
-var is_blocking: bool = false
-var is_dashing: bool = false
-var dash_speed: int = 700
-var dash_cooldown: float = 1.2
-var current_dash_cooldown: float = 0
-var enemies_hit_this_punch: Array = []
-var punch_cooldown: float = 0
-
 
 # Skill 1
 var barrage_duration: float = 2.0
@@ -81,129 +53,37 @@ func _ready() -> void:
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
 	$AimPivot/AimSprite.hide()
 
-func _physics_process(_delta: float):
-	crosshair.global_position = get_global_mouse_position()
-	if not is_attacking and not is_barraging and not is_leaping:
-		aim_pivot.look_at(get_global_mouse_position())
-	
-	# --- TICK COOLDOWNS ---
-	if current_leap_cooldown > 0: current_leap_cooldown -= _delta
-	if current_barrage_cooldown > 0: current_barrage_cooldown -= _delta
-	if current_dash_cooldown > 0: current_dash_cooldown -= _delta
-	if current_manji_cooldown > 0: current_manji_cooldown -= _delta
-	if punch_cooldown > 0: punch_cooldown -= _delta
-	if ce_cooldown > 0: ce_cooldown -= _delta
+func _physics_process(delta: float):
+	if current_leap_cooldown > 0: current_leap_cooldown -= delta
+	if current_barrage_cooldown > 0: current_barrage_cooldown -= delta
+	if current_manji_cooldown > 0: current_manji_cooldown -= delta
+	if ce_cooldown > 0: ce_cooldown -= delta
 	if ce_duration > 0:
-		ce_duration -= _delta
-		if ce_duration <= 0:
-			deactivate_cursed_energy()
+		ce_duration -= delta
+		if ce_duration <= 0: deactivate_cursed_energy()
 	if zone_timer > 0:
-		zone_timer -= _delta
-		if zone_timer <= 0 and is_in_the_zone:
-			exit_the_zone()
-	
-	var player_tile_pos = tile_map.local_to_map(tile_map.to_local(global_position))
-	var has_tile_above = tile_map.get_cell_source_id(3, player_tile_pos) != -1
-	if has_tile_above != is_under_overlay:
-		is_under_overlay = has_tile_above
-		fade_tilemap_layer(3, 0.3 if is_under_overlay else 1)
-	
-	if Input.is_key_pressed(KEY_9):
-		add_ult_charge(max_ult_charge)
+		zone_timer -= delta
+		if zone_timer <= 0 and is_in_the_zone: exit_the_zone()
 		
-	# VESSEL LOGIC
 	if Input.is_action_just_pressed("skill_2") and ce_cooldown <= 0 and not is_cursed_enhanced:
 		activate_cursed_energy()
 	elif Input.is_action_just_pressed("special_r") and current_manji_cooldown <= 0:
 		enter_manji_stance()
-	if Input.is_action_just_pressed("skill_4") and not is_using_skill:
-		if current_ult_charge >= max_ult_charge and not is_in_the_zone:
-			enter_the_zone()
-		elif current_ult_charge < max_ult_charge:
-			pass
-	if not is_using_skill:
-		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	elif Input.is_action_just_pressed("skill_4") and not is_using_skill:
+		if current_ult_charge >= max_ult_charge and not is_in_the_zone: enter_the_zone()
+	elif Input.is_action_just_pressed("skill_1") and current_barrage_cooldown <= 0 and not is_using_skill:
+		perform_barrage()
+	elif Input.is_action_just_pressed("skill_3") and current_leap_cooldown <= 0 and not is_using_skill:
+		perform_leap()
 		
-		if Input.is_action_pressed("sprint") and direction != Vector2.ZERO and punch_cooldown <= 0 and not is_attacking:
-			speed = run_speed
-		else:
-			speed = walk_speed
-			
-		if is_attacking or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
-			velocity = direction * (speed * 0.3)
-			$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
-			
-		elif Input.is_key_pressed(KEY_F):
-			if not is_blocking: 
-				$AudioManager.play_random_sound($AudioManager.light_whiffs, 0.8, 0.1, -5.0)
-			is_blocking = true
-			velocity = direction * (speed * 0.3)
-		else:
-			is_blocking = false
-			velocity = direction * speed
-			
-		if Input.is_key_pressed(KEY_Q) and current_dash_cooldown <= 0:
-			$AudioManager.play_random_sound($AudioManager.dashes)
-			perform_dash()
-		elif Input.is_action_just_pressed("skill_1") and current_barrage_cooldown <= 0:
-			perform_barrage()
-		elif Input.is_action_just_pressed("skill_3") and current_leap_cooldown <= 0:
-			perform_leap()
-		elif Input.is_action_pressed("attack") and not is_attacking and punch_cooldown <= 0:
-			perform_punch()
-			
-		if current_combo > 0 and not is_attacking:
-			time_since_last_hit += _delta
-			if time_since_last_hit >= 0.8: 
-				current_combo = 0
-				combo_target = null
-				
-	if is_barraging:
-		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		velocity = direction * (speed * 0.6) 
-		
-	if is_leaping and ($AnimatedSprite2D.animation == "knife-stance" or $AnimatedSprite2D.animation == "knife-leap-land"):
-		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		velocity = direction * (speed * 0.2)
-		$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
-		
-	update_animation()
-	move_and_slide()
-func die():
-	get_tree().reload_current_scene()
-	
+	super._physics_process(delta)
+
 func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, attacker_pos: Vector2 = Vector2.ZERO):
-	
 	if is_countering:
 		trigger_manji_kick(attacker_pos)
-		
 		return 
 		
-	if is_blocking:
-		$AudioManager.play_random_sound($AudioManager.blocks)
-		velocity = knockback_force * 0.5 
-		move_and_slide()
-		return 
-	if is_using_skill or is_invincible:
-		return
-	if is_blocking:
-		damage_amount = int(damage_amount * 0.2)
-		shake_camera(3)
-		
-	current_hp -= damage_amount
-	health_bar.value = current_hp
-	
-	if current_hp <= 0:
-		die()
-	else:
-		var flash_tween = get_tree().create_tween()
-		flash_tween.set_loops(5)
-		flash_tween.tween_property($AnimatedSprite2D, "modulate", Color(5, 5, 5, 0.4), 0.05)
-		flash_tween.tween_property($AnimatedSprite2D, "modulate", Color(1,1,1,1), 0.05)
-		await get_tree().create_timer(0.5, false, false, true).timeout
-		flash_tween.kill()
-		$AnimatedSprite2D.modulate = Color(1,1,1,1)
-		is_invincible = false
+	super.take_damage(damage_amount, knockback_force, attacker_pos)
 
 func perform_dash():
 	is_using_skill = true 
@@ -290,32 +170,7 @@ func perform_punch():
 		execute_hitbox()
 	
 
-func update_animation():
-	if is_attacking or is_leaping or is_barraging or is_countering or is_dashing or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
-		return 
-	var anim = "" 
-	
-	if velocity != Vector2.ZERO:
-		if speed == run_speed:
-			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
-				anim = "up-run"
-			else:
-				anim = "right-run"
-		else:
-			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
-				anim = "up-walk" 
-			else:
-				anim = "right-walk" 
 
-		if velocity.x != 0:
-			$AnimatedSprite2D.flip_h = velocity.x < 0
-	else:
-		anim = "right"
-
-	if is_cursed_enhanced:
-		anim += "_ce" 
-
-	$AnimatedSprite2D.play(anim)
 
 
 func _on_frame_changed():
@@ -385,7 +240,7 @@ func execute_hitbox():
 					
 				if is_cursed_enhanced:
 					knockback_distance += 6.0
-					base_damage += 15
+					base_damage += 18
 					
 				var shove_dir = global_position.direction_to(enemy.global_position)
 				enemy.global_position += shove_dir * knockback_distance
@@ -521,6 +376,12 @@ func perform_barrage():
 	is_using_skill = false
 	is_barraging = false
 
+func update_animation():
+	if is_leaping or is_barraging or is_countering:
+		return 
+		
+	super.update_animation()
+
 func enter_manji_stance():
 	is_using_skill = true
 	velocity = Vector2.ZERO
@@ -556,7 +417,6 @@ func perform_leap() -> void:
 	is_using_skill = true
 	is_attacking = false
 	current_combo = 0
-	combo_target = null
 	is_leaping = true
 	
 	velocity = Vector2.ZERO
@@ -643,6 +503,7 @@ func add_ult_charge(amount: int):
 
 func activate_cursed_energy():
 	is_cursed_enhanced = true
+	anim_suffix ="_ce"
 	ce_duration = 12
 	if ce_tween: ce_tween.kill()
 	ce_tween = create_tween().set_loops()
@@ -651,6 +512,7 @@ func activate_cursed_energy():
 	
 func deactivate_cursed_energy():
 	is_cursed_enhanced = false
+	anim_suffix = ""
 	ce_cooldown = 15
 	if ce_tween: ce_tween.kill()
 	$AnimatedSprite2D.modulate = Color(1,1,1)
