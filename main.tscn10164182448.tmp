@@ -6,6 +6,14 @@
 [ext_resource type="Shader" uid="uid://db81n4ecdp6yt" path="res://main.gdshader" id="4_1bvp3"]
 [ext_resource type="Script" uid="uid://cst10x0fwuryx" path="res://canvas_layer.gd" id="5_lquwl"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lquwl"]
+shader = ExtResource("4_1bvp3")
+shader_parameter/curvature = 4.0
+shader_parameter/scanline_count = 256.0
+shader_parameter/scanline_strength = 0.2
+shader_parameter/brightness_boost = 1.25
+shader_parameter/vignette_multiplier = 1.2
+
 [sub_resource type="Environment" id="Environment_1bvp3"]
 glow_blend_mode = 0
 glow_hdr_threshold = 1.5
@@ -22,19 +30,6 @@ bg_color = Color(1, 1, 1, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_272bh"]
 bg_color = Color(1, 0, 0, 1)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_1bvp3"]
-shader = ExtResource("4_1bvp3")
-shader_parameter/curvature = 4.0
-shader_parameter/rgb_shift = 0.002
-shader_parameter/scanline_intensity = 0.55
-shader_parameter/vignette_intensity = 0.8
-shader_parameter/brightness_boost = 1.15
-shader_parameter/bw_blend = 0.0
-shader_parameter/bar_progress = 0.0
-shader_parameter/threshold = 0.3
-shader_parameter/blur_amount = 0.0
-shader_parameter/pixel_size = 1.0
-
 [node name="Main" type="Node2D" unique_id=1381493787]
 y_sort_enabled = true
 
@@ -47,6 +42,18 @@ scale = Vector2(3, 3)
 
 [node name="Spawner" parent="." unique_id=264778539 instance=ExtResource("2_1bvp3")]
 y_sort_enabled = true
+
+[node name="CRT_Overlay" type="CanvasLayer" parent="." unique_id=886379498]
+layer = 100
+
+[node name="ColorRect" type="ColorRect" parent="CRT_Overlay" unique_id=927347617]
+material = SubResource("ShaderMaterial_lquwl")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=761279051]
 environment = SubResource("Environment_1bvp3")
@@ -365,14 +372,11 @@ position = Vector2(520, -356)
 [node name="Marker2D104" type="Marker2D" parent="EnemySpawns" unique_id=41891004 groups=["EnemySpawns"]]
 position = Vector2(677, 479)
 
-[node name="BackBufferCopy" type="BackBufferCopy" parent="." unique_id=1581395032]
-copy_mode = 2
-
-[node name="hud" type="CanvasLayer" parent="." unique_id=228036753]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=228036753]
 layer = 100
 script = ExtResource("5_lquwl")
 
-[node name="ProgressBar" type="ProgressBar" parent="hud" unique_id=1275442853]
+[node name="ProgressBar" type="ProgressBar" parent="CanvasLayer" unique_id=1275442853]
 offset_left = 100.0
 offset_top = 933.0
 offset_right = 455.0
@@ -381,7 +385,7 @@ theme_override_styles/background = SubResource("StyleBoxFlat_1bvp3")
 theme_override_styles/fill = SubResource("StyleBoxFlat_lquwl")
 show_percentage = false
 
-[node name="AwakeningBar" type="ProgressBar" parent="hud" unique_id=529508672]
+[node name="AwakeningBar" type="ProgressBar" parent="CanvasLayer" unique_id=529508672]
 offset_left = 100.0
 offset_top = 903.0
 offset_right = 410.0
@@ -389,13 +393,3 @@ offset_bottom = 925.0
 theme_override_styles/background = SubResource("StyleBoxFlat_7mycd")
 theme_override_styles/fill = SubResource("StyleBoxFlat_272bh")
 show_percentage = false
-
-[node name="ShaderLayer" type="CanvasLayer" parent="." unique_id=1643540603]
-
-[node name="ColorRect" type="ColorRect" parent="ShaderLayer" unique_id=2111750757 groups=["master_shader"]]
-material = SubResource("ShaderMaterial_1bvp3")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2

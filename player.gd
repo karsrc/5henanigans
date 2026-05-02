@@ -1,7 +1,6 @@
 extends BaseFighter
 
 @onready var aim_spirte = $AimPivot/AimSprite
-@onready var awakening_bar = $CanvasLayer/AwakeningBar
 @onready var black_flash_scene = preload("res://black_flash_sparks.tscn")
 
 # Skill 1
@@ -44,10 +43,6 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	crosshair.z_index = 1000
 	current_hp = max_hp
-	health_bar.max_value = max_hp
-	health_bar.value = current_hp
-	awakening_bar.max_value = max_ult_charge
-	awakening_bar.value = current_ult_charge
 	$AnimatedSprite2D.frame_changed.connect(_on_frame_changed)
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
 	$AimPivot/AimSprite.hide()
@@ -219,7 +214,6 @@ func enter_the_zone():
 	is_in_the_zone = true
 	zone_timer = zone_duration
 	current_ult_charge = 0
-	awakening_bar.value = 0
 	velocity = Vector2.ZERO
 
 	var flash = ColorRect.new()
@@ -412,12 +406,9 @@ func add_ult_charge(amount: int):
 		return
 		
 	current_ult_charge += amount
-	awakening_bar.value = current_ult_charge
 	
 	if current_ult_charge >= max_ult_charge:
 		current_ult_charge = max_ult_charge
-		awakening_bar.value = current_ult_charge
-
 func activate_cursed_energy():
 	is_cursed_enhanced = true
 	anim_suffix ="_ce"

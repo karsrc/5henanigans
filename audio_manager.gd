@@ -8,6 +8,7 @@ extends Node
 @export var dashes: Array[AudioStream]
 @export var footsteps_run: Array[AudioStream]
 @export var footsteps_walk: Array[AudioStream]
+@export var death_sounds: Array[AudioStream]
 
 func play_random_sound(sound_array: Array[AudioStream], base_pitch: float = 1.0, pitch_variance: float = 0.1, volume_change: float = 0.0):
 	if sound_array.is_empty(): 

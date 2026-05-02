@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://3hsflvie1rwx" path="res://yuji2-Sheet.png" id="4_1jxqw"]
 [ext_resource type="Texture2D" uid="uid://b870ftrkmrnvb" path="res://shadow.png" id="4_dw050"]
 [ext_resource type="Texture2D" uid="uid://cuuniufqbe328" path="res://graphics3/player/crosshair.png" id="6_2hs0m"]
+[ext_resource type="Texture2D" uid="uid://dbhqvdbqgljk1" path="res://graphics3/sounds/yuji2-Sheet.png" id="6_jm5j8"]
 [ext_resource type="Texture2D" uid="uid://c7x7lpdx75tby" path="res://icon.svg" id="7_1jxqw"]
 [ext_resource type="Script" uid="uid://beoq5v680bh53" path="res://audio_manager.gd" id="9_b26j0"]
 [ext_resource type="AudioStream" uid="uid://cbqjkx20u4xha" path="res://graphics3/sounds/LightImpact1.wav" id="10_dx0e4"]
@@ -24,6 +25,8 @@
 [ext_resource type="AudioStream" uid="uid://hpskwc0ypjmd" path="res://graphics3/sounds/Dash.wav" id="22_ek41f"]
 [ext_resource type="AudioStream" uid="uid://b3r5kbuoeltb3" path="res://graphics3/sounds/FootstepsRun.wav" id="23_khis8"]
 [ext_resource type="AudioStream" uid="uid://bu34uh4jgh7cw" path="res://graphics3/sounds/FootstepsWalk.wav" id="24_b88wv"]
+[ext_resource type="AudioStream" uid="uid://b18yfmnm8hc72" path="res://graphics3/sounds/Death.wav" id="26_qtqh7"]
+[ext_resource type="AudioStream" uid="uid://c6b2m5xkcax52" path="res://graphics3/sounds/Death1.wav" id="27_2wuci"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pskma"]
 atlas = ExtResource("2_dw050")
@@ -422,6 +425,26 @@ region = Rect2(112, 16, 16, 16)
 [sub_resource type="AtlasTexture" id="AtlasTexture_ngst3"]
 atlas = ExtResource("4_1jxqw")
 region = Rect2(128, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n7w6h"]
+atlas = ExtResource("6_jm5j8")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4alk5"]
+atlas = ExtResource("6_jm5j8")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ckw4x"]
+atlas = ExtResource("6_jm5j8")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7pnwt"]
+atlas = ExtResource("6_jm5j8")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_83b32"]
+atlas = ExtResource("6_jm5j8")
+region = Rect2(64, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5ef02"]
 atlas = ExtResource("4_1jxqw")
@@ -1467,6 +1490,26 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_n7w6h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4alk5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ckw4x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7pnwt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_83b32")
+}],
+"loop": false,
+"name": &"death",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_5ef02")
 }, {
 "duration": 1.0,
@@ -2218,23 +2261,17 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_dx0e4"]
 radius = 4.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2hs0m"]
-bg_color = Color(1, 1, 1, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1jxqw"]
-bg_color = Color(0, 1, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dw050"]
-bg_color = Color(1, 1, 1, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b26j0"]
-bg_color = Color(1, 0, 0, 1)
-
-[node name="Player" type="CharacterBody2D" unique_id=357666152 groups=["player"]]
+[node name="vessel" type="CharacterBody2D" unique_id=357666152 groups=["player"]]
 y_sort_enabled = true
 collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_onrkg")
+max_hp = null
+walk_speed = null
+run_speed = null
+dash_speed = null
+dash_cooldown = null
+combo_drop_time = null
 
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
 
@@ -2261,7 +2298,9 @@ texture = ExtResource("4_dw050")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=385866294]
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"block"
+animation = &"death"
+frame = 4
+frame_progress = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)
@@ -2284,27 +2323,6 @@ texture = ExtResource("6_2hs0m")
 position = Vector2(0, 6)
 shape = SubResource("CircleShape2D_dx0e4")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1681355530]
-layer = 100
-
-[node name="ProgressBar" type="ProgressBar" parent="CanvasLayer" unique_id=97861987]
-offset_left = 100.0
-offset_top = 933.0
-offset_right = 455.0
-offset_bottom = 955.0
-theme_override_styles/background = SubResource("StyleBoxFlat_2hs0m")
-theme_override_styles/fill = SubResource("StyleBoxFlat_1jxqw")
-show_percentage = false
-
-[node name="AwakeningBar" type="ProgressBar" parent="CanvasLayer" unique_id=1760138839]
-offset_left = 100.0
-offset_top = 903.0
-offset_right = 410.0
-offset_bottom = 925.0
-theme_override_styles/background = SubResource("StyleBoxFlat_dw050")
-theme_override_styles/fill = SubResource("StyleBoxFlat_b26j0")
-show_percentage = false
-
 [node name="TimingRing" type="Sprite2D" parent="." unique_id=1574927490]
 visible = false
 scale = Vector2(0.1, 0.1)
@@ -2320,3 +2338,4 @@ blocks = Array[AudioStream]([ExtResource("18_efrwb"), ExtResource("19_hiqhm"), E
 dashes = Array[AudioStream]([ExtResource("21_hl5qd"), ExtResource("22_ek41f")])
 footsteps_run = Array[AudioStream]([ExtResource("23_khis8")])
 footsteps_walk = Array[AudioStream]([ExtResource("24_b88wv")])
+death_sounds = Array[AudioStream]([ExtResource("26_qtqh7"), ExtResource("27_2wuci")])

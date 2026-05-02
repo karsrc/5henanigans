@@ -5,7 +5,6 @@ class_name BaseFighter
 @onready var crosshair = $Crosshair
 @onready var aim_pivot = $AimPivot
 @onready var attack_area = $AimPivot/AttackArea
-@onready var health_bar = $CanvasLayer/ProgressBar
 @onready var anim_sprite = $AnimatedSprite2D
 @onready var audio_manager = $AudioManager
 @onready var tile_map = get_parent().get_node_or_null("board")
@@ -39,9 +38,23 @@ var enemies_hit_this_punch: Array = []
 
 func _ready() -> void:
 	current_hp = max_hp
-	if health_bar:
-		health_bar.max_value = max_hp
-		health_bar.value = current_hp
+	
+	var death_screen = get_tree().get_first_node_in_group("death_screen")
+	if death_screen and death_screen.material:
+		death_screen.visible = true
+		var mat = death_screen.material
+		
+		mat.set_shader_parameter("bw_blend", 0.0)
+		mat.set_shader_parameter("bar_progress", 0.0)
+		mat.set_shader_parameter("global_blur", 0.0)
+		mat.set_shader_parameter("vignette_blur", 4.0) 
+		
+		var tween = create_tween()
+		tween.tween_method(func(val): mat.set_shader_parameter("vignette_blur", val), 4.0, 0.0, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		
+		await tween.finished
+		death_screen.visible = false
+
 
 func _physics_process(delta: float):
 	if current_hp <= 0: return
@@ -175,7 +188,6 @@ func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, at
 	if is_using_skill and not is_blocking: return
 		
 	current_hp -= damage_amount
-	if health_bar: health_bar.value = current_hp
 	
 	if current_hp <= 0:
 		die()
@@ -190,8 +202,41 @@ func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, at
 			anim_sprite.modulate = Color(1,1,1,1)
 
 func die():
+	set_physics_process(false)
+	velocity = Vector2.ZERO
+	is_invincible = true
+	if audio_manager:
+		audio_manager.play_random_sound(audio_manager.death_sounds, 1.0, 0.05, 2.0)
+	
+	if anim_sprite:
+		anim_sprite.play("death")
+	
+	var master_shader = get_tree().get_first_node_in_group("master_shader")
+	if master_shader and master_shader.material:
+		var mat = master_shader.material
+		var dissolve_tween = create_tween().set_parallel(true)
+		dissolve_tween.tween_method(func(v): mat.set_shader_parameter("bw_blend", v), 0.0, 1.0, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		dissolve_tween.tween_method(func(v): mat.set_shader_parameter("blur_amount", v), 0.0, 5.0, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		dissolve_tween.tween_method(func(v): mat.set_shader_parameter("pixel_size", v), 1.0, 32.0, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		
+		await dissolve_tween.finished
+		
+		var focus_tween = create_tween().set_parallel(true)
+		focus_tween.tween_method(func(v): mat.set_shader_parameter("pixel_size", v), 32.0, 1.0, 0.6).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+		focus_tween.tween_method(func(v): mat.set_shader_parameter("blur_amount", v), 5.0, 0.0, 0.6).set_trans(Tween.TRANS_SINE)
+		
+		await focus_tween.finished
+		var bar_tween = create_tween()
+		bar_tween.tween_method(
+			func(v): mat.set_shader_parameter("bar_progress", v), 
+			0.0, 
+			0.5, 
+			0.3
+		).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+		
+		await bar_tween.finished
+			
 	get_tree().reload_current_scene()
-
 func shake_camera(intensity: float):
 	var camera = $Camera2D if has_node("Camera2D") else null
 	if not camera: return
