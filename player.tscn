@@ -2266,12 +2266,6 @@ y_sort_enabled = true
 collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_onrkg")
-max_hp = null
-walk_speed = null
-run_speed = null
-dash_speed = null
-dash_cooldown = null
-combo_drop_time = null
 
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
 
