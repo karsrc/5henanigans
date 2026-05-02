@@ -192,7 +192,7 @@ func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, at
 		if anim_sprite:
 			var flash_tween = get_tree().create_tween()
 			flash_tween.set_loops(5)
-			flash_tween.tween_property(anim_sprite, "modulate", Color(5, 5, 5, 0.4), 0.05)
+			flash_tween.tween_property(anim_sprite, "modulate", Color(10, 10, 10, 1), 0.05)
 			flash_tween.tween_property(anim_sprite, "modulate", Color(1,1,1,1), 0.05)
 			await get_tree().create_timer(0.5, false, false, true).timeout
 			if is_instance_valid(flash_tween): flash_tween.kill()
