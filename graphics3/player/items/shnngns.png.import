@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3jchn0artiyt"
-path="res://.godot/imported/line.png-3500c792377cca13d1210b5fff32c8e6.ctex"
+uid="uid://b3wmvtnt7hfxu"
+path="res://.godot/imported/shnngns.png-97954e4bae152b5458de881cb7e7ef29.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://graphics3/objects/line.png"
-dest_files=["res://.godot/imported/line.png-3500c792377cca13d1210b5fff32c8e6.ctex"]
+source_file="res://graphics3/player/items/shnngns.png"
+dest_files=["res://.godot/imported/shnngns.png-97954e4bae152b5458de881cb7e7ef29.ctex"]
 
 [params]
 

@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://cst10x0fwuryx" path="res://canvas_layer.gd" id="5_lquwl"]
 [ext_resource type="FontFile" uid="uid://cf5ru8v7xo1rn" path="res://Pixellari.ttf" id="7_5vw27"]
 [ext_resource type="Texture2D" uid="uid://3hsflvie1rwx" path="res://yuji2-Sheet.png" id="7_272bh"]
+[ext_resource type="Texture2D" uid="uid://dgbhfubn2oop0" path="res://shnngns.png" id="8_efxa6"]
 [ext_resource type="FontFile" uid="uid://u38re3p1tk35" path="res://Pixeled.ttf" id="9_4c57u"]
 
 [sub_resource type="Environment" id="Environment_1bvp3"]
@@ -28,6 +29,87 @@ shader_parameter/bar_progress = 0.0
 shader_parameter/threshold = 0.3
 shader_parameter/blur_amount = 0.0
 shader_parameter/pixel_size = 1.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dg77c"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ycdy4"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(64, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w48qg"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(128, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vivmo"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(192, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2cqfq"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(256, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yaehf"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(320, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_074og"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(384, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cegan"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(448, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_82xsv"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(512, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_getpj"]
+atlas = ExtResource("8_efxa6")
+region = Rect2(576, 0, 64, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_4c57u"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dg77c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ycdy4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w48qg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vivmo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2cqfq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yaehf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_074og")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cegan")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_82xsv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_getpj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dg77c")
+}],
+"loop": false,
+"name": &"default",
+"speed": 10.0
+}]
 
 [sub_resource type="LabelSettings" id="LabelSettings_kek77"]
 font = ExtResource("7_5vw27")
@@ -75,7 +157,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"default",
-"speed": 5.0
+"speed": 9.0
 }]
 
 [sub_resource type="LabelSettings" id="LabelSettings_efxa6"]
@@ -490,7 +572,20 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 30
 
+[node name="Control" type="Control" parent="MainMenuLayer/CenterContainer/VBoxContainer" unique_id=1107869705]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
+[node name="LogoSprite" type="AnimatedSprite2D" parent="MainMenuLayer/CenterContainer/VBoxContainer/Control" unique_id=323841101]
+position = Vector2(5, -117)
+scale = Vector2(10, 10)
+sprite_frames = SubResource("SpriteFrames_4c57u")
+frame = 10
+frame_progress = 1.0
+
 [node name="TitleLabel" type="Label" parent="MainMenuLayer/CenterContainer/VBoxContainer" unique_id=2143968213]
+visible = false
 layout_mode = 2
 text = "SHENANIGANS!"
 label_settings = SubResource("LabelSettings_kek77")
@@ -513,7 +608,7 @@ layout_mode = 2
 position = Vector2(100, 100)
 scale = Vector2(6, 6)
 sprite_frames = SubResource("SpriteFrames_dg77c")
-frame_progress = 0.6822153
+frame_progress = 0.07009735
 
 [node name="RightArrow" type="Label" parent="MainMenuLayer/CenterContainer/VBoxContainer/CharacterRow" unique_id=737117610]
 layout_mode = 2
@@ -536,8 +631,3 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_4c57u")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_efxa6")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_dg77c")
 text = "PLAY"
-
-[node name="Control" type="Control" parent="MainMenuLayer/CenterContainer/VBoxContainer" unique_id=1107869705]
-layout_mode = 2
-
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MainMenuLayer/CenterContainer/VBoxContainer/Control" unique_id=323841101]
