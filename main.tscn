@@ -111,13 +111,6 @@ animations = [{
 "speed": 10.0
 }]
 
-[sub_resource type="LabelSettings" id="LabelSettings_kek77"]
-font = ExtResource("7_5vw27")
-font_size = 128
-shadow_size = 4
-shadow_color = Color(0.03529412, 0.039215688, 0.078431375, 1)
-shadow_offset = Vector2(6, 6)
-
 [sub_resource type="LabelSettings" id="LabelSettings_4c57u"]
 font = ExtResource("7_5vw27")
 font_size = 48
@@ -165,12 +158,6 @@ font = ExtResource("9_4c57u")
 font_size = 32
 shadow_color = Color(0.03529412, 0.039215688, 0.078431375, 1)
 shadow_offset = Vector2(4, 4)
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4c57u"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_efxa6"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg77c"]
 
 [node name="Main" type="Node2D" unique_id=1381493787]
 y_sort_enabled = true
@@ -561,73 +548,46 @@ grow_vertical = 2
 [node name="MainMenuLayer" type="CanvasLayer" parent="." unique_id=11596037]
 layer = 90
 
-[node name="CenterContainer" type="CenterContainer" parent="MainMenuLayer" unique_id=1227993336]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MainMenuLayer/CenterContainer" unique_id=1096734725]
-layout_mode = 2
-theme_override_constants/separation = 30
-
-[node name="Control" type="Control" parent="MainMenuLayer/CenterContainer/VBoxContainer" unique_id=1107869705]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 0
-
-[node name="LogoSprite" type="AnimatedSprite2D" parent="MainMenuLayer/CenterContainer/VBoxContainer/Control" unique_id=323841101]
-position = Vector2(5, -117)
+[node name="LogoSprite" type="AnimatedSprite2D" parent="MainMenuLayer" unique_id=323841101]
+position = Vector2(965, 187)
 scale = Vector2(10, 10)
 sprite_frames = SubResource("SpriteFrames_4c57u")
 frame = 10
 frame_progress = 1.0
 
-[node name="TitleLabel" type="Label" parent="MainMenuLayer/CenterContainer/VBoxContainer" unique_id=2143968213]
-visible = false
-layout_mode = 2
-text = "SHENANIGANS!"
-label_settings = SubResource("LabelSettings_kek77")
-
-[node name="CharacterRow" type="HBoxContainer" parent="MainMenuLayer/CenterContainer/VBoxContainer" unique_id=1573101550]
-layout_mode = 2
+[node name="CharacterRow" type="HBoxContainer" parent="MainMenuLayer" unique_id=1573101550]
+offset_left = 787.0
+offset_top = 334.0
+offset_right = 1133.0
+offset_bottom = 534.0
 theme_override_constants/separation = 40
 alignment = 1
 
-[node name="LeftArrow" type="Label" parent="MainMenuLayer/CenterContainer/VBoxContainer/CharacterRow" unique_id=1788796948]
+[node name="LeftArrow" type="Label" parent="MainMenuLayer/CharacterRow" unique_id=1788796948]
 layout_mode = 2
 text = "<"
 label_settings = SubResource("LabelSettings_4c57u")
 
-[node name="SpriteSpacer" type="Control" parent="MainMenuLayer/CenterContainer/VBoxContainer/CharacterRow" unique_id=1583341344]
+[node name="SpriteSpacer" type="Control" parent="MainMenuLayer/CharacterRow" unique_id=1583341344]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MainMenuLayer/CenterContainer/VBoxContainer/CharacterRow/SpriteSpacer" unique_id=1653322996]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MainMenuLayer/CharacterRow/SpriteSpacer" unique_id=1653322996]
 position = Vector2(100, 100)
 scale = Vector2(6, 6)
 sprite_frames = SubResource("SpriteFrames_dg77c")
 frame_progress = 0.07009735
 
-[node name="RightArrow" type="Label" parent="MainMenuLayer/CenterContainer/VBoxContainer/CharacterRow" unique_id=737117610]
+[node name="RightArrow" type="Label" parent="MainMenuLayer/CharacterRow" unique_id=737117610]
 layout_mode = 2
 text = ">"
 label_settings = SubResource("LabelSettings_4c57u")
 
-[node name="CharNameLabel" type="Label" parent="MainMenuLayer/CenterContainer/VBoxContainer" unique_id=228036104]
-layout_mode = 2
+[node name="CharNameLabel" type="Label" parent="MainMenuLayer" unique_id=228036104]
+offset_left = 787.0
+offset_top = 564.0
+offset_right = 1133.0
+offset_bottom = 655.0
 text = "VESSEL"
 label_settings = SubResource("LabelSettings_efxa6")
 horizontal_alignment = 1
-
-[node name="PlayButton" type="Button" parent="MainMenuLayer/CenterContainer/VBoxContainer" unique_id=2105778463]
-layout_mode = 2
-theme_override_colors/font_outline_color = Color(0.03529412, 0.039215688, 0.078431375, 1)
-theme_override_constants/outline_size = 8
-theme_override_fonts/font = ExtResource("9_4c57u")
-theme_override_font_sizes/font_size = 32
-theme_override_styles/normal = SubResource("StyleBoxEmpty_4c57u")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_efxa6")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_dg77c")
-text = "PLAY"
