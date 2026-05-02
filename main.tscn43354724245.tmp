@@ -9,7 +9,6 @@
 [ext_resource type="Script" uid="uid://cst10x0fwuryx" path="res://canvas_layer.gd" id="5_lquwl"]
 [ext_resource type="FontFile" uid="uid://cf5ru8v7xo1rn" path="res://Pixellari.ttf" id="7_5vw27"]
 [ext_resource type="Texture2D" uid="uid://3hsflvie1rwx" path="res://yuji2-Sheet.png" id="7_272bh"]
-[ext_resource type="Shader" uid="uid://2log86twx6pt" path="res://frosted_glass.gdshader" id="8_dg77c"]
 [ext_resource type="Texture2D" uid="uid://dgbhfubn2oop0" path="res://shnngns.png" id="8_efxa6"]
 [ext_resource type="FontFile" uid="uid://u38re3p1tk35" path="res://Pixeled.ttf" id="9_4c57u"]
 
@@ -30,11 +29,6 @@ shader_parameter/bar_progress = 0.0
 shader_parameter/threshold = 0.3
 shader_parameter/blur_amount = 0.0
 shader_parameter/pixel_size = 1.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ycdy4"]
-shader = ExtResource("8_dg77c")
-shader_parameter/blur_amount = 2.5
-shader_parameter/tint_color = Color(0, 0.066, 0.2, 0.7)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_dg77c"]
 atlas = ExtResource("8_efxa6")
@@ -562,7 +556,6 @@ layer = 90
 
 [node name="BackgroundVoid" type="ColorRect" parent="MainMenuLayer" unique_id=1859914058]
 visible = false
-material = SubResource("ShaderMaterial_ycdy4")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -616,14 +609,13 @@ label_settings = SubResource("LabelSettings_efxa6")
 horizontal_alignment = 1
 
 [node name="StartLabel" type="Label" parent="MainMenuLayer" unique_id=1198796632]
-offset_left = 670.0
-offset_top = 750.0
-offset_right = 1252.0
-offset_bottom = 841.0
+offset_left = 669.0
+offset_top = 904.0
+offset_right = 1251.0
+offset_bottom = 995.0
 text = "PRESS ENTER TO PLAY!"
 label_settings = SubResource("LabelSettings_dg77c")
 
-[node name="MenuCamera" type="Camera2D" parent="." unique_id=205885484]
-unique_name_in_owner = true
-position = Vector2(399, 392)
-zoom = Vector2(2.5, 2.5)
+[node name="Camera2D" type="Camera2D" parent="." unique_id=205885484]
+position = Vector2(966, 521)
+zoom = Vector2(2, 2)
