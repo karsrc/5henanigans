@@ -548,6 +548,13 @@ grow_vertical = 2
 [node name="MainMenuLayer" type="CanvasLayer" parent="." unique_id=11596037]
 layer = 90
 
+[node name="BackgroundVoid" type="ColorRect" parent="MainMenuLayer" unique_id=1859914058]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [node name="LogoSprite" type="AnimatedSprite2D" parent="MainMenuLayer" unique_id=323841101]
 position = Vector2(965, 187)
 scale = Vector2(10, 10)

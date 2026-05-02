@@ -20,10 +20,8 @@ var logo_timer = 0.0
 var is_logo_resting = false
 
 func _ready():
-	var crosshair_texture = load("res://graphics3/player/crosshair.png")
-	Input.set_custom_mouse_cursor(crosshair_texture, Input.CURSOR_ARROW, Vector2(16, 16))
+	Input.set_custom_mouse_cursor(null)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	
 	if is_instance_valid(bg_void):
 		var blur_shader = Shader.new()
 		blur_shader.code = """
@@ -31,27 +29,24 @@ func _ready():
 		uniform sampler2D screen_texture : hint_screen_texture, filter_linear_mipmap;
 		void fragment() {
 			vec4 blurred = textureLod(screen_texture, SCREEN_UV, 2.5);
-			vec4 dark_tint = vec4(0.063, 0.078, 0.122, 1.0);
+			vec4 dark_tint = vec4(0.063, 0.078, 0.122, 1.0); // Your palette navy
 			COLOR = mix(blurred, dark_tint, 0.75); 
 		}
 		"""
 		var blur_mat = ShaderMaterial.new()
 		blur_mat.shader = blur_shader
 		bg_void.material = blur_mat
-	
 	if is_instance_valid(player): 
 		player.process_mode = Node.PROCESS_MODE_DISABLED
 		player.hide()
 	if is_instance_valid(spawner): spawner.process_mode = Node.PROCESS_MODE_DISABLED
 	if is_instance_valid(gameplay_hud): gameplay_hud.hide()
-	
 	if is_instance_valid(play_button): play_button.pressed.connect(_on_play_pressed)
 	if is_instance_valid(left_btn): left_btn.pressed.connect(func(): cycle_character(-1))
 	if is_instance_valid(right_btn): right_btn.pressed.connect(func(): cycle_character(1))
 		
 	update_character_display()
 	start_flashing_play_text()
-	
 	if is_instance_valid(logo_sprite):
 		if logo_sprite.sprite_frames != null and logo_sprite.sprite_frames.has_animation("default"):
 			logo_sprite.sprite_frames.set_animation_loop("default", false)
@@ -87,20 +82,19 @@ func cycle_character(direction: int):
 	
 	if is_instance_valid(char_sprite):
 		var tw = create_tween()
-		char_sprite.modulate = Color(10, 10, 10, 1) 
+		char_sprite.modulate = Color(10, 10, 10, 1)
 		tw.tween_property(char_sprite, "modulate", Color(1, 1, 1, 1), 0.15)
 
 func update_character_display():
 	char_name_label.text = roster[current_idx]
-	if roster[current_idx] == "THE KING OF CURSES":
-		char_sprite.self_modulate = Color.WHITE
-	else:
-		char_sprite.self_modulate = Color.WHITE
-		
+	
 	if is_instance_valid(char_sprite):
-		if char_sprite.sprite_frames != null and char_sprite.sprite_frames.has_animation("right"):
-			char_sprite.sprite_frames.set_animation_loop("right", true)
-		char_sprite.play("right")
+		char_sprite.stop()
+		char_sprite.frame = 0
+		if roster[current_idx] == "THE KING OF CURSES":
+			char_sprite.self_modulate = Color(100, 100, 100, 1)
+		else:
+			char_sprite.self_modulate = Color(1, 1, 1, 1)
 
 func _on_logo_finished():
 	logo_sprite.stop()
