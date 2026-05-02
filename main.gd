@@ -35,6 +35,7 @@ var logo_timer = 0.0
 var is_logo_resting = false
 
 func _ready():
+	get_tree().paused = false
 	Input.set_custom_mouse_cursor(null)
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 	
@@ -50,9 +51,25 @@ func _ready():
 		player.hide()
 	if is_instance_valid(spawner): spawner.process_mode = Node.PROCESS_MODE_DISABLED
 	if is_instance_valid(gameplay_hud): gameplay_hud.hide()
-	
-	if is_instance_valid(left_btn): left_btn.pressed.connect(func(): cycle_character(-1))
-	if is_instance_valid(right_btn): right_btn.pressed.connect(func(): cycle_character(1))
+	if is_instance_valid(left_btn):
+		if left_btn.has_signal("pressed"):
+			left_btn.pressed.connect(func(): cycle_character(-1))
+		else:
+			left_btn.mouse_filter = Control.MOUSE_FILTER_PASS
+			left_btn.gui_input.connect(func(event):
+				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+					cycle_character(-1)
+			)
+
+	if is_instance_valid(right_btn):
+		if right_btn.has_signal("pressed"):
+			right_btn.pressed.connect(func(): cycle_character(1))
+		else:
+			right_btn.mouse_filter = Control.MOUSE_FILTER_PASS
+			right_btn.gui_input.connect(func(event):
+				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+					cycle_character(1)
+			)
 		
 	update_character_display()
 	
@@ -62,11 +79,12 @@ func _ready():
 		logo_sprite.play("default")
 		if not logo_sprite.animation_finished.is_connected(_on_logo_finished):
 			logo_sprite.animation_finished.connect(_on_logo_finished)
-			
+		var start_y: float = logo_sprite.position.y
 		var float_tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		var start_y = logo_sprite.position.y
 		float_tween.tween_property(logo_sprite, "position:y", start_y - 12.0, 2.0)
 		float_tween.tween_property(logo_sprite, "position:y", start_y, 2.0)
+		
+	play_opening_bars()
 
 func _process(delta):
 	if main_menu_layer.visible and is_logo_resting:
@@ -198,3 +216,26 @@ func _on_play_pressed():
 	
 	transition_layer.queue_free()
 	if sfx_player: sfx_player.queue_free()
+
+func _on_player_died():
+	if is_inside_tree():
+		get_tree().call_deferred("reload_current_scene")
+
+func play_opening_bars():
+	var master_shader = get_tree().get_first_node_in_group("master_shader")
+	
+	if master_shader and master_shader.material:
+		var mat = master_shader.material
+		
+		mat.set_shader_parameter("bw_blend", 0.0)
+		mat.set_shader_parameter("blur_amount", 0.0)
+		mat.set_shader_parameter("pixel_size", 1.0)
+		mat.set_shader_parameter("bar_progress", 0.5)
+		
+		var tw = create_tween()
+		tw.tween_method(
+			func(v): mat.set_shader_parameter("bar_progress", v), 
+			0.5, 
+			0.0, 
+			0.4
+		).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)

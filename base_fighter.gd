@@ -1,6 +1,8 @@
 extends CharacterBody2D
 class_name BaseFighter
 
+signal player_died
+
 # UNIVERSAL NODES
 @onready var crosshair = $Crosshair
 @onready var aim_pivot = $AimPivot
@@ -8,7 +10,6 @@ class_name BaseFighter
 @onready var anim_sprite = $AnimatedSprite2D
 @onready var audio_manager = $AudioManager
 @onready var tile_map = get_parent().get_node_or_null("board")
-
 
 # UNIVERSAL STATS & STATES
 @export var max_hp: int = 6
@@ -199,6 +200,8 @@ func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, at
 			anim_sprite.modulate = Color(1,1,1,1)
 			is_invincible = false
 
+
+
 func die():
 	set_physics_process(false)
 	velocity = Vector2.ZERO
@@ -233,8 +236,10 @@ func die():
 		).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 		
 		await bar_tween.finished
-			
-	get_tree().reload_current_scene()
+	elif anim_sprite:
+		await anim_sprite.animation_finished
+	player_died.emit()
+
 func shake_camera(intensity: float):
 	var camera = $Camera2D if has_node("Camera2D") else null
 	if not camera: return
