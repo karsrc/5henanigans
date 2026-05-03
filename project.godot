@@ -10,10 +10,14 @@ config_version=5
 
 [application]
 
-config/name="shenanigans"
+config/name="Shenanigans"
+config/description="Top-Down PvE game with fun characters.
+
+"
+config/version="1.0"
 run/main_scene="uid://bef8kggx51eqa"
 config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://stuff/icon.svg"
+config/icon="uid://d26w1c2mcq5vr"
 
 [audio]
 
@@ -27,6 +31,7 @@ Global="*uid://imt34m3ld6v1"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=3
 window/stretch/aspect="expand"
 
 [editor_plugins]
@@ -117,3 +122,5 @@ sprint={
 
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
