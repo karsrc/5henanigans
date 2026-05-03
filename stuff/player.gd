@@ -269,49 +269,54 @@ func trigger_hit_stop():
 	await get_tree().create_timer(0.1, true, false, true).timeout
 	Engine.time_scale = 1
 func perform_barrage():
-	is_using_skill = true
 	is_barraging = true
 	current_barrage_cooldown = barrage_cooldown
+	var original_speed = speed 
+	speed = original_speed * 0.3 
 	
 	$AimPivot/AimSprite.show()
-	
+	if not $AimPivot/AimSprite.is_playing():
+		$AimPivot/AimSprite.play()
+		
 	$AnimatedSprite2D.play("barrage" + anim_suffix)
 	
 	for i in range(barrage_hits):
-		aim_pivot.look_at(get_global_mouse_position())
+		if not Input.is_action_pressed("skill_1"):
+			break 
+		if not $AimPivot/AimSprite.is_playing():
+			$AimPivot/AimSprite.play()
+		
+		if has_node("AimPivot"):
+			$AimPivot.look_at(get_global_mouse_position())
 		$AnimatedSprite2D.flip_h = get_global_mouse_position().x < global_position.x
 		
 		var overlapping_bodies = attack_area.get_overlapping_bodies()
-		var enemies_present = false
-		
-		for body in overlapping_bodies:
-			if body.is_in_group("enemy"):
-				enemies_present = true
-				break 
-		
-		if not enemies_present:
-			break 
-		
-		$AudioManager.play_random_sound($AudioManager.light_whiffs, 1.3, 0.2, -12.0)
+		var hit_someone = false
 		
 		for body in overlapping_bodies:
 			if body.is_in_group("enemy") and body.has_method("take_damage"):
-				$AudioManager.play_random_sound($AudioManager.light_impacts, 1.1, 0.2, -8.0)
-				body.take_damage(barrage_damage)
+				hit_someone = true
+				body.take_damage(barrage_damage, global_position, 80.0) 
 				add_ult_charge(1)
 				
-				if global_position.distance_to(body.global_position) > 25:
-					body.global_position += body.global_position.direction_to(global_position) * 10
+				if "damage_popup_scene" in self and damage_popup_scene:
+					var popup = damage_popup_scene.instantiate()
+					popup.global_position = body.global_position + Vector2(randf_range(-15, 15), -10)
+					get_tree().current_scene.add_child(popup)
+					popup.setup(barrage_damage, 1, is_in_the_zone)
 		
-		if not $AimPivot/AimSprite.is_playing():
-			$AimPivot/AimSprite.play()
-
-		await get_tree().create_timer(0.08).timeout
-
+		if hit_someone:
+			if has_node("AudioManager"): 
+				$AudioManager.play_random_sound($AudioManager.light_impacts, 1.1, 0.2, -8.0)
+		else:
+			if has_node("AudioManager"): 
+				$AudioManager.play_random_sound($AudioManager.light_whiffs, 1.3, 0.2, -12.0)
+		await get_tree().create_timer(0.08, false, false, true).timeout
 	$AimPivot/AimSprite.hide()
-	is_using_skill = false
 	is_barraging = false
-
+	speed = original_speed
+	if has_method("update_animation"):
+		update_animation()
 func update_animation():
 	if is_leaping or is_barraging or is_countering:
 		return 

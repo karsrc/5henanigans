@@ -192,7 +192,7 @@ func prepare_and_attack():
 	
 	if player and global_position.distance_to(player.global_position) <= attack_range:
 		if player.has_method("take_damage"):
-			player.take_damage(1.5)
+			player.take_damage(1)
 			
 	if enemy_type == "dragon":
 		await anim.animation_finished
