@@ -33,6 +33,7 @@ var current_idx = 0
 var is_starting = false 
 var logo_timer = 0.0
 var is_logo_resting = false
+var total_score: int = 0
 
 func _ready():
 	get_tree().paused = false
@@ -94,6 +95,9 @@ func _process(delta):
 			is_logo_resting = false
 			logo_sprite.play("default")
 
+func _on_player_enemy_hit(points: int, multiplier: int):
+	$Player.enemy_hit.connect(_on_player_enemy_hit)
+
 func _input(event):
 	if not main_menu_layer.visible or is_starting: return
 	
@@ -107,7 +111,7 @@ func cycle_character(direction: int):
 	elif current_idx >= roster.size(): current_idx = 0
 		
 	var tap = AudioStreamPlayer.new()
-	tap.stream = load("res://graphics3/sounds/tap.wav") 
+	tap.stream = load("res://addons/ASSETS/sounds/tap.wav") 
 	if tap.stream:
 		add_child(tap)
 		tap.play()

@@ -2,11 +2,11 @@ extends CharacterBody2D
 class_name BaseFighter
 
 signal player_died
+signal enemy_hit(points_earned: int, current_multiplier: int)
 
 # UNIVERSAL NODES
 @onready var crosshair = $Crosshair
 @onready var aim_pivot = $AimPivot
-@onready var attack_area = $AimPivot/AttackArea
 @onready var anim_sprite = $AnimatedSprite2D
 @onready var audio_manager = $AudioManager
 @onready var tile_map = get_parent().get_node_or_null("board")
@@ -178,7 +178,7 @@ func perform_punch():
 	if is_attacking: execute_hitbox()
 
 func execute_hitbox():
-	pass 
+	pass
 
 func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, attacker_pos: Vector2 = Vector2.ZERO):
 	if is_invincible: return

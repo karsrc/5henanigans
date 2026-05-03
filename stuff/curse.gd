@@ -50,6 +50,8 @@ func _ready():
 	await anim.animation_finished
 	is_spawning = false
 
+
+
 func _physics_process(delta: float):
 	if is_spawning or current_hp <= 0:
 		return

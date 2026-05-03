@@ -2,6 +2,7 @@ extends BaseFighter
 
 @onready var aim_spirte = $AimPivot/AimSprite
 @onready var black_flash_scene = preload("res://stuff/black_flash_sparks.tscn")
+@onready var attack_area = $AimPivot/AttackArea
 
 # Skill 1
 var barrage_duration: float = 2.0
@@ -120,17 +121,20 @@ func execute_hitbox():
 	var last_hit_pos = Vector2.ZERO
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
 	
-	var locked_aim_direction = Vector2.RIGHT.rotated(aim_pivot.rotation)
+	# Safe reference to the aim pivot rotation
+	var locked_aim_direction = Vector2.RIGHT
+	if has_node("AimPivot"):
+		locked_aim_direction = Vector2.RIGHT.rotated($AimPivot.rotation)
 	
 	for enemy in all_enemies:
 		if not is_instance_valid(enemy): continue
 		
 		var distance = global_position.distance_to(enemy.global_position)
 		var dir_to_enemy = global_position.direction_to(enemy.global_position)
+		var is_in_front = locked_aim_direction.dot(dir_to_enemy) > 0.3
 		
-		var is_in_front = locked_aim_direction.dot(dir_to_enemy) > 0.3 
-		
-		if attack_area.overlaps_body(enemy) or (distance <= 45 and is_in_front):
+		# Safely checking the AttackArea using the direct path
+		if $AimPivot/AttackArea.overlaps_body(enemy) or (distance <= 45 and is_in_front):
 			
 			if enemy.has_method("take_damage"):
 				if enemy in enemies_hit_this_punch:
@@ -148,12 +152,12 @@ func execute_hitbox():
 				# --- SCORE SYSTEM END ---
 				
 				if is_cursed_enhanced:
-					$AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1) 
+					if $AudioManager: $AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1)
 				else:
-					$AudioManager.play_random_sound($AudioManager.light_impacts)
+					if $AudioManager: $AudioManager.play_random_sound($AudioManager.light_impacts)
 					
 				var knockback_distance = 6.0
-				var base_damage = 10 
+				var base_damage = 10
 				
 				if current_combo == 2:
 					knockback_distance = 12.0
@@ -170,38 +174,44 @@ func execute_hitbox():
 				enemy.global_position += shove_dir * knockback_distance
 				
 				enemy.take_damage(base_damage)
-				add_ult_charge(base_damage)
+				
+				if has_method("add_ult_charge"):
+					add_ult_charge(base_damage)
 					
 				if enemy.has_method("apply_slow"):
 					enemy.apply_slow()
+
 	if hit_enemy:
 		var shake_intensity = 5.0
 		if current_combo >= 3: shake_intensity = 14.0
 		if is_cursed_enhanced: shake_intensity += 10.0
-		if is_in_the_zone: shake_intensity += 20.0 
+		if is_in_the_zone: shake_intensity += 20.0
 		shake_camera(shake_intensity)
+		
 		if (is_cursed_enhanced or is_in_the_zone) and last_hit_pos != Vector2.ZERO:
 			var recoil_dir = -global_position.direction_to(last_hit_pos)
 			var recoil_force = 200.0 if is_in_the_zone else 150.0
 			velocity += recoil_dir * recoil_force
-		if is_in_the_zone:
-			$AudioManager.play_random_sound($AudioManager.heavy_impacts, 1.5, 0.1, -2.0)
 			
-			if last_hit_pos != Vector2.ZERO:
+		if is_in_the_zone:
+			if $AudioManager: $AudioManager.play_random_sound($AudioManager.heavy_impacts, 1.5, 0.1, -2.0)
+			
+			if last_hit_pos != Vector2.ZERO and "black_flash_scene" in self and black_flash_scene != null:
 				var sparks = black_flash_scene.instantiate()
 				sparks.global_position = last_hit_pos
-				get_tree().current_scene.add_child(sparks) 
+				get_tree().current_scene.add_child(sparks)
 			
 			for hit_target in enemies_hit_this_punch:
 				if is_instance_valid(hit_target) and hit_target.has_node("AnimatedSprite2D"):
 					var sprite = hit_target.get_node("AnimatedSprite2D")
 					var flash_tween = create_tween()
-					sprite.self_modulate = Color(0, 0, 0, 1) 
-					flash_tween.tween_property(sprite, "self_modulate", Color(5, 0.5, 0.5, 1), 0.1) 
+					sprite.self_modulate = Color(0, 0, 0, 1)
+					flash_tween.tween_property(sprite, "self_modulate", Color(5, 0.5, 0.5, 1), 0.1)
 					flash_tween.tween_property(sprite, "self_modulate", Color(1, 1, 1, 1), 0.1)
+					
 		var stop_duration = 0.03
 		if is_cursed_enhanced: stop_duration = 0.08
-		if is_in_the_zone: stop_duration = 0.18 
+		if is_in_the_zone: stop_duration = 0.18
 		
 		Engine.time_scale = 0.1
 		await get_tree().create_timer(stop_duration, true, false, true).timeout
@@ -215,6 +225,8 @@ func _on_animation_finished():
 				punch_cooldown = 0.1 
 				
 			is_attacking = false
+
+
 
 func enter_the_zone():
 	is_using_skill = true
