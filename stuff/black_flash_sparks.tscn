@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://cj2lqbvda5lht"]
+
+[ext_resource type="Texture2D" uid="uid://c3q4hyk7auvsw" path="res://addons/ASSETS/sprites/blackflash.png" id="1_1mxf1"]
+[ext_resource type="AudioStream" uid="uid://cwbxpicb36xeh" path="res://addons/ASSETS/sounds/blackflash.wav" id="1_xiwc8"]
+[ext_resource type="Script" uid="uid://c88yjwhh14two" path="res://stuff/black_flash_sparks.gd" id="2_1pdn6"]
+
+[node name="BlackFlashSparks" type="CPUParticles2D" unique_id=1641354680]
+emitting = false
+amount = 6
+texture = ExtResource("1_1mxf1")
+explosiveness = 1.0
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 297.03
+initial_velocity_max = 504.95
+angular_velocity_max = 720.0
+damping_min = 74.257
+damping_max = 100.0
+script = ExtResource("2_1pdn6")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=2144438831]
+stream = ExtResource("1_xiwc8")

@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://dyaibnqma8lh5"]
+
+[ext_resource type="Script" uid="uid://c8amwv6qmnqyv" path="res://stuff/damage_popup.gd" id="1_7yncj"]
+[ext_resource type="FontFile" uid="uid://u38re3p1tk35" path="res://addons/ASSETS/fonts/Pixeled.ttf" id="1_qkre8"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_7yncj"]
+font = ExtResource("1_qkre8")
+outline_color = Color(0.03529412, 0.039215688, 0.078431375, 1)
+
+[node name="DamagePopup" type="Marker2D" unique_id=1036708779]
+script = ExtResource("1_7yncj")
+
+[node name="Label" type="Label" parent="." unique_id=36418128]
+offset_right = 40.0
+offset_bottom = 23.0
+label_settings = SubResource("LabelSettings_7yncj")

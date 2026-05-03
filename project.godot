@@ -13,7 +13,11 @@ config_version=5
 config/name="shenanigans"
 run/main_scene="uid://bef8kggx51eqa"
 config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://stuff/icon.svg"
+
+[audio]
+
+buses/default_bus_layout="res://stuff/default_bus_layout.tres"
 
 [autoload]
 
@@ -35,7 +39,6 @@ player=""
 enemy=""
 EnemySpawns=""
 death_screen=""
-hud=""
 
 [input]
 

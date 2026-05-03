@@ -1,7 +1,0 @@
-[gd_resource type="AtlasTexture" format=3 uid="uid://2mxfd08sngw"]
-
-[ext_resource type="Texture2D" uid="uid://di3rmq6wdyo7m" path="res://graphics3/heart.png" id="1_hsa3b"]
-
-[resource]
-atlas = ExtResource("1_hsa3b")
-region = Rect2(16.02844, 0, 16.025934, 16)
