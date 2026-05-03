@@ -617,9 +617,9 @@ label_settings = SubResource("LabelSettings_efxa6")
 horizontal_alignment = 1
 
 [node name="StartLabel" type="Label" parent="MainMenuLayer" unique_id=1198796632]
-offset_left = 760.0
+offset_left = 673.0
 offset_top = 750.0
-offset_right = 1342.0
+offset_right = 1255.0
 offset_bottom = 841.0
 text = "PRESS ENTER TO PLAY!"
 label_settings = SubResource("LabelSettings_dg77c")

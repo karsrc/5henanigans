@@ -63,11 +63,12 @@ func _physics_process(delta: float):
 	if current_dash_cooldown > 0: current_dash_cooldown -= delta
 	if punch_cooldown > 0: punch_cooldown -= delta
 	if tile_map:
-		var player_tile_pos = tile_map.local_to_map(tile_map.to_local(global_position))
+		var check_pos = global_position + Vector2(0, 16)
+		var player_tile_pos = tile_map.local_to_map(tile_map.to_local(check_pos))
 		var has_tile_above = tile_map.get_cell_source_id(3, player_tile_pos) != -1
 		if has_tile_above != is_under_overlay:
 			is_under_overlay = has_tile_above
-			fade_tilemap_layer(3, 0.3 if is_under_overlay else 1)
+			fade_tilemap_layer(3, 0.3 if is_under_overlay else 1.0)
 	if crosshair: crosshair.global_position = get_global_mouse_position()
 	if aim_pivot and not is_attacking and not is_using_skill:
 		aim_pivot.look_at(get_global_mouse_position())

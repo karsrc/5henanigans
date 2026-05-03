@@ -4280,7 +4280,11 @@ texture = ExtResource("1_p0ybc")
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_psm7c")
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_p0ybc"]
+radius = 11.153839
+
 [node name="board" type="TileMap" unique_id=1433290910]
+y_sort_enabled = true
 scale = Vector2(2.6, 2.6)
 tile_set = SubResource("TileSet_8l818")
 format = 2
@@ -4300,3 +4304,41 @@ layer_5/tile_data = PackedInt32Array(589858, 524288, 20, 655394, 524288, 21, 983
 layer_6/name = "Decorations3"
 layer_6/z_index = 998
 layer_6/tile_data = PackedInt32Array(1245198, 262144, 18, 1245199, 327680, 18, 1245206, 262144, 112, 131093, 1966080, 10, 131094, 2031616, 10, 1245204, 1966080, 18, 1245205, 2031616, 22, 1245203, 1900544, 22, 1245201, 1966080, 18, 1245200, 1900544, 22, 1245202, 2031616, 22, 393250, 196608, 21, 458786, 196608, 22)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1127903883]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1079158814]
+position = Vector2(103.84616, 329.23077)
+shape = SubResource("CircleShape2D_p0ybc")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D" unique_id=1317220020]
+position = Vector2(215.76923, 328.8462)
+shape = SubResource("CircleShape2D_p0ybc")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D" unique_id=1233676282]
+position = Vector2(488.46158, 201.53845)
+shape = SubResource("CircleShape2D_p0ybc")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="StaticBody2D" unique_id=1360017182]
+position = Vector2(217.3077, 56.92308)
+shape = SubResource("CircleShape2D_p0ybc")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="StaticBody2D" unique_id=51125167]
+position = Vector2(376.15387, 56.923065)
+shape = SubResource("CircleShape2D_p0ybc")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="StaticBody2D" unique_id=1802670062]
+position = Vector2(488.46158, 56.923065)
+shape = SubResource("CircleShape2D_p0ybc")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="StaticBody2D" unique_id=1565727062]
+position = Vector2(488.07697, 328.07693)
+shape = SubResource("CircleShape2D_p0ybc")
+
+[node name="CollisionShape2D8" type="CollisionShape2D" parent="StaticBody2D" unique_id=182690279]
+position = Vector2(375.76926, 328.84616)
+shape = SubResource("CircleShape2D_p0ybc")
+
+[node name="CollisionShape2D9" type="CollisionShape2D" parent="StaticBody2D" unique_id=214888333]
+position = Vector2(88.076935, 56.923107)
+shape = SubResource("CircleShape2D_p0ybc")
