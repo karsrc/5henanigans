@@ -40,6 +40,7 @@ While punching with M1, each punch deals more and more damage. You are able to s
 
 ## How to play
 - Go to [the website](https://karsrc.github.io/5henanigans/)
+- Best experience when playing fullscreen!
 
 ## Planned updates
 - Add characters, that are currently listed on the main menu 
