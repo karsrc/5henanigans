@@ -19,6 +19,8 @@ signal player_died
 @export var dash_cooldown: float = 1.2
 @export var combo_drop_time: float = 1.0
 
+
+var score_combo: int = 0
 var last_anim_dir: String = "right"
 var anim_suffix: String = ""
 var current_hp: int
@@ -75,8 +77,9 @@ func _physics_process(delta: float):
 		
 	if current_combo > 0 and not is_attacking:
 		time_since_last_hit += delta
-		if time_since_last_hit >= 0.8: 
-			current_combo = 0
+	if time_since_last_hit >= 0.8: 
+		current_combo = 0
+		score_combo = 0
 	
 
 	if not is_using_skill and not is_dashing:

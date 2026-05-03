@@ -15,6 +15,10 @@ run/main_scene="uid://bef8kggx51eqa"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Global="*uid://imt34m3ld6v1"
+
 [display]
 
 window/size/viewport_width=1920
@@ -31,6 +35,7 @@ player=""
 enemy=""
 EnemySpawns=""
 death_screen=""
+hud=""
 
 [input]
 

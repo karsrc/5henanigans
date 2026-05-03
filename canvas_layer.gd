@@ -2,14 +2,24 @@ extends CanvasLayer
 
 @onready var player = get_parent().get_node("Player")
 @onready var heart_container = $MarginContainer/HBoxContainer 
-
+@onready var score_label = $MarginContainer2/ScoreLabel
 @onready var tex_full = preload("res://graphics3/heart_full.tres")
 @onready var tex_half = preload("res://graphics3/heart_half.tres") 
 @onready var tex_empty = preload("res://graphics3/heart_empty.tres")
 
+func _ready():
+	update_score_display()
+
+
 func _process(_delta):
 	if is_instance_valid(player):
 		update_hearts()
+
+func update_score_display():
+	if score_label:
+		score_label.text = "SCORE: " + str(Global.total_score)
+	else:
+		print("Error: ScoreLabel not found at the expected path!")
 
 func update_hearts():
 	var current_hp = player.current_hp

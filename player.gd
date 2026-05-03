@@ -140,6 +140,13 @@ func execute_hitbox():
 				hit_enemy = true
 				last_hit_pos = enemy.global_position
 				
+				# --- SCORE SYSTEM START ---
+				score_combo += 1
+				var points_earned = 50 + ((score_combo - 1) * 25)
+				Global.total_score += points_earned
+				get_tree().call_group("hud", "update_score_display")
+				# --- SCORE SYSTEM END ---
+				
 				if is_cursed_enhanced:
 					$AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1) 
 				else:
