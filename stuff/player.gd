@@ -175,6 +175,12 @@ func execute_hitbox():
 				
 				enemy.take_damage(base_damage)
 				
+				if damage_popup_scene:
+					var popup = damage_popup_scene.instantiate()
+					popup.global_position = enemy.global_position + Vector2(0, -10)
+					get_tree().current_scene.add_child(popup)
+					popup.setup(base_damage, current_combo, is_in_the_zone)
+				
 				if has_method("add_ult_charge"):
 					add_ult_charge(base_damage)
 					
@@ -227,7 +233,6 @@ func _on_animation_finished():
 				punch_cooldown = 0.1 
 				
 			is_attacking = false
-
 
 
 func enter_the_zone():

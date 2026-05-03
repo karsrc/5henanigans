@@ -39,7 +39,8 @@ func _ready():
 	get_tree().paused = false
 	Input.set_custom_mouse_cursor(null)
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
-	
+	Global.total_score = 0
+	get_tree().call_group("hud", "update_score_display")
 	if is_instance_valid(menu_camera):
 		menu_camera.make_current()
 	

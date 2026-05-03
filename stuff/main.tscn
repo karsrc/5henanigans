@@ -539,8 +539,9 @@ script = ExtResource("5_lquwl")
 
 [node name="UltBar" type="ProgressBar" parent="hud" unique_id=1029850918]
 custom_minimum_size = Vector2(15, 20)
+offset_left = 82.0
 offset_top = 968.0
-offset_right = 1920.0
+offset_right = 781.0
 offset_bottom = 988.0
 theme_override_styles/background = SubResource("StyleBoxFlat_pp8lv")
 theme_override_styles/fill = SubResource("StyleBoxFlat_p0g3j")

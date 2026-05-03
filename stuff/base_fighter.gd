@@ -18,7 +18,7 @@ signal enemy_hit(points_earned: int, current_multiplier: int)
 @export var dash_speed: int = 700
 @export var dash_cooldown: float = 1.2
 @export var combo_drop_time: float = 1.0
-
+@export var damage_popup_scene: PackedScene
 
 var score_combo: int = 0
 var last_anim_dir: String = "right"

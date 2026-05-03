@@ -14,3 +14,5 @@ script = ExtResource("1_7yncj")
 offset_right = 40.0
 offset_bottom = 23.0
 label_settings = SubResource("LabelSettings_7yncj")
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -26,6 +26,7 @@
 [ext_resource type="AudioStream" uid="uid://bu34uh4jgh7cw" path="res://addons/ASSETS/sounds/FootstepsWalk.wav" id="24_b88wv"]
 [ext_resource type="AudioStream" uid="uid://b18yfmnm8hc72" path="res://addons/ASSETS/sounds/Death.wav" id="26_qtqh7"]
 [ext_resource type="AudioStream" uid="uid://c6b2m5xkcax52" path="res://addons/ASSETS/sounds/Death1.wav" id="27_2wuci"]
+[ext_resource type="PackedScene" uid="uid://dyaibnqma8lh5" path="res://stuff/damage_popup.tscn" id="27_w7jsf"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pskma"]
 atlas = ExtResource("2_dw050")
@@ -2265,6 +2266,7 @@ y_sort_enabled = true
 collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_onrkg")
+damage_popup_scene = ExtResource("27_w7jsf")
 
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
 show_behind_parent = true
@@ -2292,9 +2294,7 @@ texture = ExtResource("4_dw050")
 z_index = 2
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"death"
-frame = 4
-frame_progress = 1.0
+animation = &"block"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)
