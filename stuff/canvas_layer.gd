@@ -6,6 +6,7 @@ extends CanvasLayer
 @onready var tex_full = preload("res://stuff/heart_full.tres")
 @onready var tex_half = preload("res://stuff/heart_half.tres") 
 @onready var tex_empty = preload("res://stuff/heart_empty.tres")
+@onready var ult_bar = $UltBar
 
 func _ready():
 	add_to_group("hud")
@@ -14,12 +15,12 @@ func _ready():
 func _process(_delta):
 	if is_instance_valid(player):
 		update_hearts()
+		update_meters()
+		update_score_display()
 
 func update_score_display():
 	if score_label:
 		score_label.text = "SCORE: " + str(Global.total_score)
-	else:
-		print("Error: ScoreLabel not found at the expected path!")
 
 func update_hearts():
 	var current_hp = player.current_hp
@@ -36,3 +37,10 @@ func update_hearts():
 			heart_node.texture = tex_half
 		else:
 			heart_node.texture = tex_empty
+
+func update_meters():
+	if ult_bar:
+		ult_bar.max_value = player.max_ult_charge
+		ult_bar.value = lerp(ult_bar.value, float(player.current_ult_charge), 0.1)
+		if abs(ult_bar.value - player.current_ult_charge) < 0.5:
+			ult_bar.value = player.current_ult_charge

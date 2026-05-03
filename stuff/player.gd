@@ -34,7 +34,7 @@ var is_countering: bool = false
 var manji_damage: int = 25
 
 # Ultimate
-var max_ult_charge: int = 2000
+var max_ult_charge: int = 250
 var current_ult_charge: int = 0
 var is_in_the_zone: bool = false
 var zone_duration: float = 12.0
@@ -59,6 +59,7 @@ func _physics_process(delta: float):
 		if ce_duration <= 0: deactivate_cursed_energy()
 	if zone_timer > 0:
 		zone_timer -= delta
+		current_ult_charge = int((zone_timer / zone_duration) * max_ult_charge)
 		if zone_timer <= 0 and is_in_the_zone: exit_the_zone()
 		
 	if Input.is_action_just_pressed("skill_2") and ce_cooldown <= 0 and not is_cursed_enhanced:
@@ -121,7 +122,6 @@ func execute_hitbox():
 	var last_hit_pos = Vector2.ZERO
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
 	
-	# Safe reference to the aim pivot rotation
 	var locked_aim_direction = Vector2.RIGHT
 	if has_node("AimPivot"):
 		locked_aim_direction = Vector2.RIGHT.rotated($AimPivot.rotation)
@@ -133,7 +133,6 @@ func execute_hitbox():
 		var dir_to_enemy = global_position.direction_to(enemy.global_position)
 		var is_in_front = locked_aim_direction.dot(dir_to_enemy) > 0.3
 		
-		# Safely checking the AttackArea using the direct path
 		if $AimPivot/AttackArea.overlaps_body(enemy) or (distance <= 45 and is_in_front):
 			
 			if enemy.has_method("take_damage"):
@@ -143,13 +142,10 @@ func execute_hitbox():
 				enemies_hit_this_punch.append(enemy)
 				hit_enemy = true
 				last_hit_pos = enemy.global_position
-				
-				# --- SCORE SYSTEM START ---
 				score_combo += 1
 				var points_earned = 50 + ((score_combo - 1) * 25)
 				Global.total_score += points_earned
 				get_tree().call_group("hud", "update_score_display")
-				# --- SCORE SYSTEM END ---
 				
 				if is_cursed_enhanced:
 					if $AudioManager: $AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1)
@@ -169,6 +165,10 @@ func execute_hitbox():
 				if is_cursed_enhanced:
 					knockback_distance += 6.0
 					base_damage += 18
+					
+				if is_in_the_zone:
+					base_damage += 30
+					current_hp = min(current_hp + 1, max_hp)
 					
 				var shove_dir = global_position.direction_to(enemy.global_position)
 				enemy.global_position += shove_dir * knockback_distance
@@ -216,6 +216,8 @@ func execute_hitbox():
 		Engine.time_scale = 0.1
 		await get_tree().create_timer(stop_duration, true, false, true).timeout
 		Engine.time_scale = 1.0
+		
+
 func _on_animation_finished():
 	if $AnimatedSprite2D.animation.begins_with("m1"):
 			$AimPivot/AimSprite.hide()
@@ -232,27 +234,22 @@ func enter_the_zone():
 	is_using_skill = true
 	is_in_the_zone = true
 	zone_timer = zone_duration
-	current_ult_charge = 0
 	velocity = Vector2.ZERO
-
+	var flash_layer = CanvasLayer.new()
+	flash_layer.layer = 100 
 	var flash = ColorRect.new()
 	flash.color = Color(0, 0, 0, 1) 
 	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	flash.z_index = 100
-	$CanvasLayer.add_child(flash)
-
+	flash_layer.add_child(flash)
+	add_child(flash_layer)
 	Engine.time_scale = 0.05
 	shake_camera(25.0)
-
 	await get_tree().create_timer(0.05, true, false, true).timeout
-	
-	flash.queue_free()
+	flash_layer.queue_free()
 	Engine.time_scale = 1.0
 	
 	$AnimatedSprite2D.speed_scale = 1.5
-	$AnimatedSprite2D.modulate = Color(1.8, 0.6, 0.6)
 	is_using_skill = false
-
 func exit_the_zone():
 	is_in_the_zone = false
 	$AnimatedSprite2D.speed_scale = 1.0

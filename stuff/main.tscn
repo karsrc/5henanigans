@@ -17,7 +17,31 @@
 glow_blend_mode = 0
 glow_hdr_threshold = 1.5
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pp8lv"]
+bg_color = Color(0.000113828006, 0.00011382805, 0.00011382793, 0.23921569)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.03529412, 0.039215688, 0.078431375, 1)
+corner_detail = 1
+shadow_size = 1
+shadow_offset = Vector2(2, 2)
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p0g3j"]
+bg_color = Color(0.64685506, 0.1897483, 0.1897483, 0.813)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+anti_aliasing = false
+
 [sub_resource type="LabelSettings" id="LabelSettings_ycdy4"]
+font = ExtResource("9_4c57u")
+font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_p0g3j"]
 font = ExtResource("9_4c57u")
 font_size = 32
 
@@ -513,6 +537,16 @@ copy_mode = 2
 layer = 10
 script = ExtResource("5_lquwl")
 
+[node name="UltBar" type="ProgressBar" parent="hud" unique_id=1029850918]
+custom_minimum_size = Vector2(15, 20)
+offset_top = 968.0
+offset_right = 1920.0
+offset_bottom = 988.0
+theme_override_styles/background = SubResource("StyleBoxFlat_pp8lv")
+theme_override_styles/fill = SubResource("StyleBoxFlat_p0g3j")
+step = 0.1
+show_percentage = false
+
 [node name="MarginContainer" type="MarginContainer" parent="hud" unique_id=691196857]
 anchors_preset = 1
 anchor_left = 1.0
@@ -567,6 +601,47 @@ layout_mode = 2
 label_settings = SubResource("LabelSettings_ycdy4")
 horizontal_alignment = 2
 
+[node name="MarginContainer3" type="MarginContainer" parent="hud" unique_id=752230541]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -215.0
+offset_right = 260.0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="hud" unique_id=1391936539]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -937.0
+offset_top = -148.0
+offset_right = -237.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="MarginContainer4" type="MarginContainer" parent="hud" unique_id=614988516]
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -53.0
+offset_top = 99.0
+offset_right = 382.0
+offset_bottom = 591.0
+grow_vertical = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 50
+
+[node name="Label" type="Label" parent="hud/MarginContainer4" unique_id=951927972]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "   THE ZONE"
+label_settings = SubResource("LabelSettings_p0g3j")
+vertical_alignment = 1
+
 [node name="ShaderLayer" type="CanvasLayer" parent="." unique_id=1643540603]
 layer = 100
 
@@ -575,6 +650,8 @@ material = SubResource("ShaderMaterial_1bvp3")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 3.0
+offset_right = 3.0
 grow_horizontal = 2
 grow_vertical = 2
 
