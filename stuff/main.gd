@@ -41,6 +41,7 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 	Global.total_score = 0
 	get_tree().call_group("hud", "update_score_display")
+	
 	if is_instance_valid(menu_camera):
 		menu_camera.make_current()
 	
@@ -53,6 +54,7 @@ func _ready():
 		player.hide()
 	if is_instance_valid(spawner): spawner.process_mode = Node.PROCESS_MODE_DISABLED
 	if is_instance_valid(gameplay_hud): gameplay_hud.hide()
+	
 	if is_instance_valid(left_btn):
 		if left_btn.has_signal("pressed"):
 			left_btn.pressed.connect(func(): cycle_character(-1))
@@ -97,7 +99,9 @@ func _process(delta):
 			logo_sprite.play("default")
 
 func _on_player_enemy_hit(points: int, multiplier: int):
-	$Player.enemy_hit.connect(_on_player_enemy_hit)
+	if is_instance_valid(player) and player.has_signal("enemy_hit"):
+		if not player.enemy_hit.is_connected(_on_player_enemy_hit):
+			player.enemy_hit.connect(_on_player_enemy_hit)
 
 func _input(event):
 	if not main_menu_layer.visible or is_starting: return
@@ -132,7 +136,7 @@ func update_character_display():
 		char_sprite.stop()
 		char_sprite.frame = 0
 		
-		if roster[current_idx] != "VESSEL":
+		if roster[current_idx] not in ["VESSEL", "STRAW DOLL"]:
 			char_sprite.self_modulate = Color("#090a14")
 		else:
 			char_sprite.self_modulate = Color(1, 1, 1, 1)
@@ -144,9 +148,10 @@ func _on_logo_finished():
 
 func _on_play_pressed():
 	if is_starting: return
-	if roster[current_idx] != "VESSEL":
+	
+	if roster[current_idx] not in ["VESSEL", "STRAW DOLL"]:
 		var err = AudioStreamPlayer.new()
-		err.stream = load("res://graphics3/sounds/Block.wav")
+		err.stream = load("res://addons/ASSETS/sounds/Block.wav")
 		if err.stream:
 			err.pitch_scale = 0.9
 			add_child(err)
@@ -163,6 +168,21 @@ func _on_play_pressed():
 		
 	is_starting = true
 	
+	var chosen_scene: PackedScene
+	if roster[current_idx] == "VESSEL":
+		chosen_scene = load("res://stuff/player.tscn")
+	elif roster[current_idx] == "STRAW DOLL":
+		chosen_scene = load("res://stuff/player_doll.tscn") 
+
+	if chosen_scene:
+		var new_player = chosen_scene.instantiate()
+		new_player.global_position = player.global_position
+		new_player.hide()
+		new_player.process_mode = Node.PROCESS_MODE_DISABLED
+		add_child(new_player)
+		
+		player.queue_free()
+		player = new_player 
 	var sfx_player = AudioStreamPlayer.new()
 	sfx_player.stream = load("res://addons/ASSETS/sounds/GameBegin.wav")
 	if sfx_player.stream:
@@ -192,14 +212,17 @@ func _on_play_pressed():
 		bar.position = Vector2(-bar.size.x, 0)
 		transition_layer.add_child(bar)
 		bars.append(bar)
+		
 	var wipe_in = create_tween().set_parallel(true)
 	var delay = 0.0
 	for i in range(num_bars):
 		var target_x = i * bar_width
 		wipe_in.tween_property(bars[i], "position:x", target_x, 0.2).set_delay(delay).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 		delay += 0.04 
+		
 	await wipe_in.finished
 	main_menu_layer.hide()
+	
 	if is_instance_valid(player): 
 		for child in player.get_children():
 			if child is Camera2D:
@@ -207,6 +230,7 @@ func _on_play_pressed():
 				break
 		player.process_mode = Node.PROCESS_MODE_INHERIT
 		player.show()
+		
 	if is_instance_valid(spawner): spawner.process_mode = Node.PROCESS_MODE_INHERIT
 	if is_instance_valid(gameplay_hud): gameplay_hud.show()
 
