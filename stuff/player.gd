@@ -15,9 +15,9 @@ var current_barrage_cooldown: float = 0.0
 # Skill 2
 var is_in_zone: bool = false
 var is_cursed_enhanced: bool = false
-var ce_duration: float = 0
 var ce_cooldown: float = 0
 var ce_tween: Tween
+var ce_drain_accumulator: float = 0.0
 
 # Skill 3
 var leap_speed: int = 400
@@ -53,17 +53,31 @@ func _physics_process(delta: float):
 	if current_barrage_cooldown > 0: current_barrage_cooldown -= delta
 	if current_manji_cooldown > 0: current_manji_cooldown -= delta
 	if ce_cooldown > 0: ce_cooldown -= delta
-	if ce_duration > 0:
-		ce_duration -= delta
-		if ce_duration <= 0: deactivate_cursed_energy()
+	
+	if is_cursed_enhanced:
+		ce_drain_accumulator += 25.0 * delta
+		if ce_drain_accumulator >= 1.0:
+			var drain_amount = int(ce_drain_accumulator)
+			current_ult_charge -= drain_amount
+			ce_drain_accumulator -= drain_amount
+			
+			if current_ult_charge <= 0:
+				current_ult_charge = 0
+				deactivate_cursed_energy()
+				
 	if zone_timer > 0:
 		zone_timer -= delta
 		current_ult_charge = int((zone_timer / zone_duration) * max_ult_charge)
 		if zone_timer <= 0 and is_in_the_zone: exit_the_zone()
 		
-	if Input.is_action_just_pressed("skill_2") and not is_cursed_enhanced:
-		if ce_cooldown <= 0:
-			activate_cursed_energy()
+	if Input.is_action_just_pressed("skill_2"):
+		if is_cursed_enhanced:
+			deactivate_cursed_energy() 
+		elif ce_cooldown <= 0:
+			if current_ult_charge > 0:
+				activate_cursed_energy()
+			else:
+				show_cooldown_warning("", "Not enough Cursed Energy!")
 		else:
 			show_cooldown_warning("Cursed Enhancement")
 			
@@ -77,7 +91,7 @@ func _physics_process(delta: float):
 		if current_ult_charge >= max_ult_charge and not is_in_the_zone: 
 			enter_the_zone()
 		elif current_ult_charge < max_ult_charge and not is_in_the_zone:
-			show_cooldown_warning("The Zone")
+			show_cooldown_warning("", "The Zone isn't ready yet!")
 			
 	elif Input.is_action_just_pressed("skill_1") and not is_using_skill:
 		if current_barrage_cooldown <= 0:
@@ -171,7 +185,7 @@ func execute_hitbox():
 				else:
 					if $AudioManager: $AudioManager.play_random_sound($AudioManager.light_impacts)
 					
-				var base_damage: int = 8 + (current_combo * 2)
+				var base_damage: int = 10 + (current_combo * 2)
 				var knockback_distance: float = 6.0 + (current_combo * 4.0)
 				
 				if is_cursed_enhanced:
@@ -179,7 +193,7 @@ func execute_hitbox():
 					base_damage = int(base_damage * 1.5)
 					
 				if is_in_the_zone:
-					base_damage += 30
+					base_damage += 20
 					current_hp = min(current_hp + 1, max_hp)
 					
 				var shove_dir = global_position.direction_to(enemy.global_position)
@@ -451,7 +465,7 @@ func add_ult_charge(amount: int):
 func activate_cursed_energy():
 	is_cursed_enhanced = true
 	anim_suffix ="_ce"
-	ce_duration = 12
+	ce_drain_accumulator = 0.0
 	if ce_tween: ce_tween.kill()
 	ce_tween = create_tween().set_loops()
 	ce_tween.tween_property($AnimatedSprite2D, "modulate", Color(1.2, 1.5, 2), 0.5)

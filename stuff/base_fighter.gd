@@ -15,7 +15,7 @@ signal enemy_hit(points_earned: int, current_multiplier: int)
 @export var max_hp: int = 6
 @export var walk_speed: float = 180.0
 @export var run_speed: float = 300.0
-@export var dash_speed: int = 700
+@export var dash_speed: int = 500
 @export var dash_cooldown: float = 1.2
 @export var combo_drop_time: float = 1.0
 @export var damage_popup_scene: PackedScene
@@ -125,7 +125,7 @@ func perform_dash():
 	
 	var anim_name = "dash-up" if dash_dir.y < 0 else "dash"
 	if anim_sprite:
-		anim_sprite.play(anim_name + anim_suffix) 
+		anim_sprite.play(anim_name + anim_suffix)
 		anim_sprite.flip_h = dash_dir.x < 0
 		await anim_sprite.animation_finished 
 	
@@ -157,7 +157,7 @@ func perform_punch():
 	elif current_combo == 3: anim_to_play = "m1-3" + suffix
 		
 	if anim_sprite:
-		anim_sprite.play(anim_to_play)
+		anim_sprite.play(anim_to_play + anim_suffix)
 		anim_sprite.flip_h = mouse_pos.x < global_position.x
 	
 	if audio_manager: audio_manager.play_random_sound(audio_manager.light_whiffs)
@@ -297,7 +297,7 @@ func fade_tilemap_layer(layer_index: int, target_alpha: float):
 		0.25
 	)
 
-func show_cooldown_warning(skill_name: String):
+func show_cooldown_warning(skill_name: String, custom_text: String = ""):
 	if has_node("CooldownCanvas"):
 		get_node("CooldownCanvas").queue_free()
 
@@ -306,7 +306,11 @@ func show_cooldown_warning(skill_name: String):
 	canvas.layer = 1 
 	
 	var label = Label.new()
-	label.text = skill_name + " is on cooldown!"
+	
+	if custom_text == "":
+		label.text = skill_name + " is on cooldown!"
+	else:
+		label.text = custom_text
 	
 	label.anchor_left = 0.0
 	label.anchor_right = 1.0
