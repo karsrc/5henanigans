@@ -58,7 +58,6 @@ func _ready() -> void:
 		await tween.finished
 		death_screen.visible = false
 
-
 func _physics_process(delta: float):
 	if current_hp <= 0: return
 	
@@ -80,7 +79,6 @@ func _physics_process(delta: float):
 	if time_since_last_hit >= 0.8: 
 		current_combo = 0
 		score_combo = 0
-	
 
 	if not is_using_skill and not is_dashing:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -127,7 +125,7 @@ func perform_dash():
 	
 	var anim_name = "dash-up" if dash_dir.y < 0 else "dash"
 	if anim_sprite:
-		anim_sprite.play(anim_name)
+		anim_sprite.play(anim_name + anim_suffix) 
 		anim_sprite.flip_h = dash_dir.x < 0
 		await anim_sprite.animation_finished 
 	
@@ -203,8 +201,6 @@ func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, at
 			if is_instance_valid(flash_tween): flash_tween.kill()
 			anim_sprite.modulate = Color(1,1,1,1)
 			is_invincible = false
-
-
 
 func die():
 	set_physics_process(false)
@@ -300,3 +296,38 @@ func fade_tilemap_layer(layer_index: int, target_alpha: float):
 		target_color,
 		0.25
 	)
+
+func show_cooldown_warning(skill_name: String):
+	if has_node("CooldownCanvas"):
+		get_node("CooldownCanvas").queue_free()
+
+	var canvas = CanvasLayer.new()
+	canvas.name = "CooldownCanvas"
+	canvas.layer = 1 
+	
+	var label = Label.new()
+	label.text = skill_name + " is on cooldown!"
+	
+	label.anchor_left = 0.0
+	label.anchor_right = 1.0
+	label.anchor_top = 0.75
+	label.anchor_bottom = 0.75
+	label.offset_left = 0
+	label.offset_right = 0
+	label.offset_top = 0
+	label.offset_bottom = 0
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	
+	label.add_theme_font_override("font", preload("res://addons/ASSETS/fonts/Pixellari.ttf"))
+	label.add_theme_font_size_override("font_size", 32)
+	
+	canvas.add_child(label)
+	add_child(canvas)
+	
+	var tween = create_tween()
+	tween.tween_interval(1.0) 
+	tween.tween_property(label, "modulate:a", 0.0, 0.5) 
+	await tween.finished
+	
+	if is_instance_valid(canvas):
+		canvas.queue_free()

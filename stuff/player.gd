@@ -48,7 +48,6 @@ func _ready() -> void:
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
 	$AimPivot/AimSprite.hide()
 	
-
 func _physics_process(delta: float):
 	if current_leap_cooldown > 0: current_leap_cooldown -= delta
 	if current_barrage_cooldown > 0: current_barrage_cooldown -= delta
@@ -62,16 +61,35 @@ func _physics_process(delta: float):
 		current_ult_charge = int((zone_timer / zone_duration) * max_ult_charge)
 		if zone_timer <= 0 and is_in_the_zone: exit_the_zone()
 		
-	if Input.is_action_just_pressed("skill_2") and ce_cooldown <= 0 and not is_cursed_enhanced:
-		activate_cursed_energy()
-	elif Input.is_action_just_pressed("special_r") and current_manji_cooldown <= 0:
-		enter_manji_stance()
+	if Input.is_action_just_pressed("skill_2") and not is_cursed_enhanced:
+		if ce_cooldown <= 0:
+			activate_cursed_energy()
+		else:
+			show_cooldown_warning("Cursed Enhancement")
+			
+	elif Input.is_action_just_pressed("special_r"):
+		if current_manji_cooldown <= 0:
+			enter_manji_stance()
+		else:
+			show_cooldown_warning("Manji Kick")
+			
 	elif Input.is_action_just_pressed("skill_4") and not is_using_skill:
-		if current_ult_charge >= max_ult_charge and not is_in_the_zone: enter_the_zone()
-	elif Input.is_action_just_pressed("skill_1") and current_barrage_cooldown <= 0 and not is_using_skill:
-		perform_barrage()
-	elif Input.is_action_just_pressed("skill_3") and current_leap_cooldown <= 0 and not is_using_skill:
-		perform_leap()
+		if current_ult_charge >= max_ult_charge and not is_in_the_zone: 
+			enter_the_zone()
+		elif current_ult_charge < max_ult_charge and not is_in_the_zone:
+			show_cooldown_warning("The Zone")
+			
+	elif Input.is_action_just_pressed("skill_1") and not is_using_skill:
+		if current_barrage_cooldown <= 0:
+			perform_barrage()
+		else:
+			show_cooldown_warning("Barrage")
+			
+	elif Input.is_action_just_pressed("skill_3") and not is_using_skill:
+		if current_leap_cooldown <= 0:
+			perform_leap()
+		else:
+			show_cooldown_warning("Knife Leap")
 		
 	super._physics_process(delta)
 
@@ -117,6 +135,7 @@ func _on_frame_changed():
 	if current_anim.begins_with("manji-kick"):
 		if current_frame == 0: 
 			execute_hitbox()
+
 func execute_hitbox():
 	var hit_enemy = false
 	var last_hit_pos = Vector2.ZERO
@@ -152,19 +171,12 @@ func execute_hitbox():
 				else:
 					if $AudioManager: $AudioManager.play_random_sound($AudioManager.light_impacts)
 					
-				var knockback_distance = 6.0
-				var base_damage = 10
+				var base_damage: int = 8 + (current_combo * 2)
+				var knockback_distance: float = 6.0 + (current_combo * 4.0)
 				
-				if current_combo == 2:
-					knockback_distance = 12.0
-					base_damage = 12
-				elif current_combo >= 3:
-					knockback_distance = 22.0
-					base_damage = 25
-					
 				if is_cursed_enhanced:
 					knockback_distance += 6.0
-					base_damage += 18
+					base_damage = int(base_damage * 1.5)
 					
 				if is_in_the_zone:
 					base_damage += 30
@@ -222,7 +234,6 @@ func execute_hitbox():
 		Engine.time_scale = 0.1
 		await get_tree().create_timer(stop_duration, true, false, true).timeout
 		Engine.time_scale = 1.0
-		
 
 func _on_animation_finished():
 	if $AnimatedSprite2D.animation.begins_with("m1"):
@@ -233,7 +244,6 @@ func _on_animation_finished():
 				punch_cooldown = 0.1 
 				
 			is_attacking = false
-
 
 func enter_the_zone():
 	is_using_skill = true
@@ -255,6 +265,7 @@ func enter_the_zone():
 	
 	$AnimatedSprite2D.speed_scale = 1.5
 	is_using_skill = false
+
 func exit_the_zone():
 	is_in_the_zone = false
 	$AnimatedSprite2D.speed_scale = 1.0
@@ -268,6 +279,7 @@ func trigger_hit_stop():
 	Engine.time_scale = 0.05
 	await get_tree().create_timer(0.1, true, false, true).timeout
 	Engine.time_scale = 1
+
 func perform_barrage():
 	is_barraging = true
 	current_barrage_cooldown = barrage_cooldown
@@ -317,6 +329,7 @@ func perform_barrage():
 	speed = original_speed
 	if has_method("update_animation"):
 		update_animation()
+
 func update_animation():
 	if is_leaping or is_barraging or is_countering:
 		return 
@@ -361,7 +374,6 @@ func perform_leap() -> void:
 	await $AnimatedSprite2D.animation_finished 
 	
 	$AnimatedSprite2D.play("knife-leap")
-	
 	
 	var all_enemies = get_tree().get_nodes_in_group("enemy")
 	for enemy in all_enemies:
@@ -435,6 +447,7 @@ func add_ult_charge(amount: int):
 	
 	if current_ult_charge >= max_ult_charge:
 		current_ult_charge = max_ult_charge
+
 func activate_cursed_energy():
 	is_cursed_enhanced = true
 	anim_suffix ="_ce"
