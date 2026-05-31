@@ -12,6 +12,7 @@
 [ext_resource type="Shader" uid="uid://2log86twx6pt" path="res://stuff/frosted_glass.gdshader" id="8_dg77c"]
 [ext_resource type="Texture2D" uid="uid://dgbhfubn2oop0" path="res://addons/ASSETS/sprites/shnngns (2).png" id="8_efxa6"]
 [ext_resource type="FontFile" uid="uid://u38re3p1tk35" path="res://addons/ASSETS/fonts/Pixeled.ttf" id="9_4c57u"]
+[ext_resource type="Texture2D" uid="uid://7quexyi058fs" path="res://stuff/yuta.png" id="13_pp8lv"]
 
 [sub_resource type="Environment" id="Environment_1bvp3"]
 glow_blend_mode = 0
@@ -167,6 +168,10 @@ region = Rect2(32, 0, 16, 16)
 atlas = ExtResource("7_272bh")
 region = Rect2(48, 0, 16, 16)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_ni35c"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(0, 0, 16, 16)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_dg77c"]
 animations = [{
 "frames": [{
@@ -185,6 +190,14 @@ animations = [{
 "loop": true,
 "name": &"default",
 "speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ni35c")
+}],
+"loop": true,
+"name": &"executioner",
+"speed": 5.0
 }]
 
 [sub_resource type="LabelSettings" id="LabelSettings_efxa6"]
@@ -697,7 +710,6 @@ layout_mode = 2
 position = Vector2(100, 100)
 scale = Vector2(6, 6)
 sprite_frames = SubResource("SpriteFrames_dg77c")
-frame_progress = 0.9528388
 
 [node name="RightArrow" type="Label" parent="MainMenuLayer/CharacterRow" unique_id=737117610]
 layout_mode = 2

@@ -17,6 +17,7 @@ extends Node2D
 
 var roster = [
 	"VESSEL", 
+	"THE EXECUTIONER",
 	"THE KING OF CURSES", 
 	"10 SHADOWS", 
 	"THE HONORED ONE", 
@@ -134,9 +135,15 @@ func update_character_display():
 	
 	if is_instance_valid(char_sprite):
 		char_sprite.stop()
+		
+		if roster[current_idx] == "VESSEL":
+			char_sprite.animation = "default"
+		elif roster[current_idx] == "THE EXECUTIONER":
+			char_sprite.animation = "executioner"
+		
 		char_sprite.frame = 0
 		
-		if roster[current_idx] not in ["VESSEL", "GIRL OF STEEL"]:
+		if roster[current_idx] not in ["VESSEL", "GIRL OF STEEL", "THE EXECUTIONER"]:
 			char_sprite.self_modulate = Color("#090a14")
 		else:
 			char_sprite.self_modulate = Color(1, 1, 1, 1)
@@ -150,7 +157,7 @@ func _on_play_pressed():
 	if is_starting: return
 	
 	# prevent playing locked charactesr
-	if roster[current_idx] not in ["VESSEL", "GIRL OF STEEL"]:
+	if roster[current_idx] not in ["VESSEL", "GIRL OF STEEL", "THE EXECUTIONER"]:
 		var err = AudioStreamPlayer.new()
 		err.stream = load("res://addons/ASSETS/sounds/Block.wav")
 		if err.stream:
@@ -175,6 +182,8 @@ func _on_play_pressed():
 		chosen_scene = load("res://stuff/player.tscn")
 	elif roster[current_idx] == "GIRL OF STEEL":
 		chosen_scene = load("res://stuff/player_doll.tscn") 
+	elif roster[current_idx] == "THE EXECUTIONER":
+		chosen_scene = load("res://stuff/player_executioner.tscn")
 
 	if chosen_scene:
 		var new_player = chosen_scene.instantiate()
