@@ -26,7 +26,7 @@ var roster = [
 	"HEAD OF THE HEI", 
 	"MAVERICK OUTCAST", 
 	"THE CANNON", 
-	"STRAW DOLL"
+	"GIRL OF STEEL"
 ]
 
 var current_idx = 0
@@ -136,7 +136,7 @@ func update_character_display():
 		char_sprite.stop()
 		char_sprite.frame = 0
 		
-		if roster[current_idx] not in ["VESSEL", "STRAW DOLL"]:
+		if roster[current_idx] not in ["VESSEL", "GIRL OF STEEL"]:
 			char_sprite.self_modulate = Color("#090a14")
 		else:
 			char_sprite.self_modulate = Color(1, 1, 1, 1)
@@ -149,7 +149,8 @@ func _on_logo_finished():
 func _on_play_pressed():
 	if is_starting: return
 	
-	if roster[current_idx] not in ["VESSEL", "STRAW DOLL"]:
+	# prevent playing locked charactesr
+	if roster[current_idx] not in ["VESSEL", "GIRL OF STEEL"]:
 		var err = AudioStreamPlayer.new()
 		err.stream = load("res://addons/ASSETS/sounds/Block.wav")
 		if err.stream:
@@ -168,21 +169,33 @@ func _on_play_pressed():
 		
 	is_starting = true
 	
+	# -Swapping characters-
 	var chosen_scene: PackedScene
 	if roster[current_idx] == "VESSEL":
 		chosen_scene = load("res://stuff/player.tscn")
-	elif roster[current_idx] == "STRAW DOLL":
+	elif roster[current_idx] == "GIRL OF STEEL":
 		chosen_scene = load("res://stuff/player_doll.tscn") 
 
 	if chosen_scene:
 		var new_player = chosen_scene.instantiate()
 		new_player.global_position = player.global_position
+		new_player.scale = player.scale 
 		new_player.hide()
 		new_player.process_mode = Node.PROCESS_MODE_DISABLED
 		add_child(new_player)
 		
-		player.queue_free()
+		player.queue_free() 
 		player = new_player 
+		
+		player.name = "Player" 
+		gameplay_hud.player = player 
+		
+		if not player.player_died.is_connected(_on_player_died):
+			player.player_died.connect(_on_player_died)
+			
+		if player.has_signal("enemy_hit") and not player.enemy_hit.is_connected(_on_player_enemy_hit):
+			player.enemy_hit.connect(_on_player_enemy_hit)
+			
 	var sfx_player = AudioStreamPlayer.new()
 	sfx_player.stream = load("res://addons/ASSETS/sounds/GameBegin.wav")
 	if sfx_player.stream:
@@ -244,7 +257,7 @@ func _on_play_pressed():
 	await wipe_out.finished
 	
 	transition_layer.queue_free()
-	if sfx_player: sfx_player.queue_free()
+	if is_instance_valid(sfx_player): sfx_player.queue_free()
 
 func _on_player_died():
 	if is_inside_tree():
