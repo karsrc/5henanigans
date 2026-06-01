@@ -12,7 +12,7 @@
 [ext_resource type="Shader" uid="uid://2log86twx6pt" path="res://stuff/frosted_glass.gdshader" id="8_dg77c"]
 [ext_resource type="Texture2D" uid="uid://dgbhfubn2oop0" path="res://addons/ASSETS/sprites/shnngns (2).png" id="8_efxa6"]
 [ext_resource type="FontFile" uid="uid://u38re3p1tk35" path="res://addons/ASSETS/fonts/Pixeled.ttf" id="9_4c57u"]
-[ext_resource type="Texture2D" uid="uid://7quexyi058fs" path="res://stuff/yuta.png" id="13_pp8lv"]
+[ext_resource type="Texture2D" uid="uid://c0ahb30glcvwy" path="res://stuff/yuuuuta-Sheet.png" id="13_pp8lv"]
 
 [sub_resource type="Environment" id="Environment_1bvp3"]
 glow_blend_mode = 0
@@ -170,7 +170,55 @@ region = Rect2(48, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ni35c"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(0, 0, 16, 16)
+region = Rect2(0, 192, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ey66w"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(48, 192, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0xab6"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(96, 192, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4cxra"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(144, 192, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ylhy0"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(192, 192, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4mys6"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(240, 192, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yroda"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(288, 192, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_osxdp"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gguo5"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ydygg"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y2aef"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8a3td"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4xxig"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(0, 0, 48, 48)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_dg77c"]
 animations = [{
@@ -194,10 +242,51 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ni35c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ey66w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0xab6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4cxra")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ylhy0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4mys6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yroda")
 }],
 "loop": true,
 "name": &"executioner",
-"speed": 5.0
+"speed": 13.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_osxdp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gguo5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ydygg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y2aef")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8a3td")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4xxig")
+}],
+"loop": false,
+"name": &"executionerH",
+"speed": 13.0
 }]
 
 [sub_resource type="LabelSettings" id="LabelSettings_efxa6"]
@@ -710,6 +799,7 @@ layout_mode = 2
 position = Vector2(100, 100)
 scale = Vector2(6, 6)
 sprite_frames = SubResource("SpriteFrames_dg77c")
+frame_progress = 0.19498825
 
 [node name="RightArrow" type="Label" parent="MainMenuLayer/CharacterRow" unique_id=737117610]
 layout_mode = 2

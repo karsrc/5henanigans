@@ -110,6 +110,8 @@ func _input(event):
 	if event.is_action_pressed("ui_left"): cycle_character(-1)
 	elif event.is_action_pressed("ui_right"): cycle_character(1)
 	elif event.is_action_pressed("ui_accept"): _on_play_pressed()
+	elif event.is_action_pressed("ui_cancel"): get_tree().quit()
+
 
 func cycle_character(direction: int):
 	current_idx += direction
@@ -134,19 +136,24 @@ func update_character_display():
 	char_name_label.text = roster[current_idx]
 	
 	if is_instance_valid(char_sprite):
-		char_sprite.stop()
+		char_sprite.scale = Vector2(7, 7)
+		if not char_sprite.animation_finished.is_connected(_on_char_sprite_finished):
+			char_sprite.animation_finished.connect(_on_char_sprite_finished)
 		
 		if roster[current_idx] == "VESSEL":
-			char_sprite.animation = "default"
+			char_sprite.play("default") 
 		elif roster[current_idx] == "THE EXECUTIONER":
-			char_sprite.animation = "executioner"
-		
-		char_sprite.frame = 0
+			char_sprite.play("executionerH") 
+		else:
+			char_sprite.stop()
 		
 		if roster[current_idx] not in ["VESSEL", "GIRL OF STEEL", "THE EXECUTIONER"]:
 			char_sprite.self_modulate = Color("#090a14")
 		else:
 			char_sprite.self_modulate = Color(1, 1, 1, 1)
+func _on_char_sprite_finished():
+	if char_sprite.animation == "executionerH" and roster[current_idx] == "THE EXECUTIONER":
+		char_sprite.play("executioner")
 
 func _on_logo_finished():
 	logo_sprite.stop()
@@ -157,7 +164,7 @@ func _on_play_pressed():
 	if is_starting: return
 	
 	# prevent playing locked charactesr
-	if roster[current_idx] not in ["VESSEL", "GIRL OF STEEL", "THE EXECUTIONER"]:
+	if roster[current_idx] not in ["VESSEL", "THE EXECUTIONER"]:
 		var err = AudioStreamPlayer.new()
 		err.stream = load("res://addons/ASSETS/sounds/Block.wav")
 		if err.stream:
