@@ -799,7 +799,7 @@ layout_mode = 2
 position = Vector2(100, 100)
 scale = Vector2(6, 6)
 sprite_frames = SubResource("SpriteFrames_dg77c")
-frame_progress = 0.19498825
+frame_progress = 0.24493754
 
 [node name="RightArrow" type="Label" parent="MainMenuLayer/CharacterRow" unique_id=737117610]
 layout_mode = 2

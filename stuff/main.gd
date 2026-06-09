@@ -12,24 +12,26 @@ extends Node2D
 @onready var char_name_label = $MainMenuLayer/CharNameLabel
 @onready var left_btn = %LeftArrowBtn
 @onready var right_btn = %RightArrowBtn
+@onready var hard_glitch_layer = $HardGlitchLayer
 
 @onready var menu_camera = %MenuCamera
 
 var roster = [
 	"VESSEL", 
 	"THE EXECUTIONER",
+	"GIRL OF STEEL",
 	"THE KING OF CURSES", 
 	"10 SHADOWS", 
+	"THE CANNON",
 	"THE HONORED ONE", 
 	"SEANCE", 
-	"CURSED SPEECH", 
-	"POISON", 
-	"HEAD OF THE HEI", 
-	"MAVERICK OUTCAST", 
-	"THE CANNON", 
-	"GIRL OF STEEL"
+	"HEAD OF THE HEI",
 ]
 
+
+var time_in_menu: float = 0.0
+var time_until_next_glitch = randf_range(8.0, 20.0)
+var glitch_accumulator: float = 0.0
 var current_idx = 0
 var is_starting = false 
 var logo_timer = 0.0
@@ -42,6 +44,9 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 	Global.total_score = 0
 	get_tree().call_group("hud", "update_score_display")
+	
+	if is_instance_valid(hard_glitch_layer):
+		hard_glitch_layer.hide()
 	
 	if is_instance_valid(menu_camera):
 		menu_camera.make_current()
@@ -98,6 +103,15 @@ func _process(delta):
 			logo_timer = 0.0
 			is_logo_resting = false
 			logo_sprite.play("default")
+
+	if main_menu_layer.visible and not is_starting:
+		time_in_menu += delta
+		if time_in_menu >= 3.0:
+			glitch_accumulator += delta
+			if glitch_accumulator >= time_until_next_glitch:
+				trigger_aesthetic_glitch()
+				glitch_accumulator = 0.0
+				time_until_next_glitch = randf_range(2.0, 7.0)
 
 func _on_player_enemy_hit(points: int, multiplier: int):
 	if is_instance_valid(player) and player.has_signal("enemy_hit"):
@@ -297,3 +311,51 @@ func play_opening_bars():
 			0.0, 
 			0.4
 		).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+func trigger_aesthetic_glitch():
+	var rect = ColorRect.new()
+	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
+	var mat = ShaderMaterial.new()
+	var shader = Shader.new()
+	shader.code = """
+	shader_type canvas_item;
+	uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+	
+	void fragment() {
+		vec2 uv = SCREEN_UV;
+		
+		// Thinner bands (60.0 instead of 25.0)
+		float noise = fract(sin(floor(uv.y * 60.0) * 12.34 + TIME * 15.0) * 43758.54);
+		
+		// Less frequent tearing across the screen (0.92 instead of 0.85)
+		float tear = step(0.92, noise); 
+		
+		// Much smaller pixel shift (0.005 instead of 0.015)
+		float shift_amount = 0.005;
+		uv.x += tear * shift_amount * sin(TIME * 60.0);
+		
+		// Slight RGB split on the torn pixels
+		float r = texture(screen_tex, uv + vec2(shift_amount * tear, 0.0)).r;
+		float g = texture(screen_tex, uv).g;
+		float b = texture(screen_tex, uv - vec2(shift_amount * tear, 0.0)).b;
+		
+		vec3 final_color = vec3(r, g, b);
+		
+		// Calculate true grayscale value of the screen
+		float grayscale = dot(final_color, vec3(0.299, 0.587, 0.114));
+		
+		// Drain the color: Mixes 40% of the screen to grayscale, and drains even more on the torn bands
+		final_color = mix(final_color, vec3(grayscale), 0.4 + (tear * 0.4));
+		
+		COLOR = vec4(final_color, 1.0);
+	}
+	"""
+	mat.shader = shader
+	rect.material = mat
+	
+	main_menu_layer.add_child(rect)
+	
+	await get_tree().create_timer(0.12, true, false, true).timeout
+	if is_instance_valid(rect):
+		rect.queue_free()

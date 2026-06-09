@@ -90,6 +90,13 @@ func update_meters():
 			
 	var is_ult_active = (player.get("is_in_the_zone") == true) or (player.get("is_awakened") == true)
 	var is_full = (player.current_ult_charge >= player.max_ult_charge)
+	var is_yuta = player.has_method("launch_meteor_leap")
+	
+	if zone_label:
+		zone_label.text = "Come, Rika." if is_yuta else "THE ZONE"
+	var base_color = Color(1.0, 0.4, 0.7, 1.0) if is_yuta else Color(1, 1, 1, 1)
+	var glow_color = Color(2.5, 1.0, 1.8, 1.0) if is_yuta else Color(2.5, 2.5, 2.5, 1.0)
+	var active_dark_color = Color(0.5, 0.2, 0.35, 1.0) if is_yuta else Color(0.3, 0.3, 0.3, 1.0)
 	
 	var desired_state = "none"
 	if is_ult_active:
@@ -105,17 +112,17 @@ func update_meters():
 			
 		if desired_state == "full":
 			pulse_tween = create_tween().set_loops()
-			pulse_tween.tween_property(ult_bar, "modulate", Color(2.5, 2.5, 2.5, 1.0), 0.0)
+			pulse_tween.tween_property(ult_bar, "modulate", glow_color, 0.0)
 			pulse_tween.tween_interval(0.15)
-			pulse_tween.tween_property(ult_bar, "modulate", Color(1, 1, 1, 1.0), 0.0)
+			pulse_tween.tween_property(ult_bar, "modulate", base_color, 0.0)
 			pulse_tween.tween_interval(0.15)
 			
 		elif desired_state == "active":
 			pulse_tween = create_tween().set_loops()
-			pulse_tween.tween_property(ult_bar, "modulate", Color(0.3, 0.3, 0.3, 1.0), 0.0)
+			pulse_tween.tween_property(ult_bar, "modulate", active_dark_color, 0.0)
 			pulse_tween.tween_interval(0.2)
-			pulse_tween.tween_property(ult_bar, "modulate", Color(1, 1, 1, 1.0), 0.0)
+			pulse_tween.tween_property(ult_bar, "modulate", base_color, 0.0)
 			pulse_tween.tween_interval(0.2)
 			
 		else:
-			ult_bar.modulate = Color(1, 1, 1, 1.0)
+			ult_bar.modulate = base_color
