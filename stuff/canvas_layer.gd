@@ -1,9 +1,8 @@
 extends CanvasLayer
-
-@onready var player = get_parent().get_node("Player")
+var player: Node
 @onready var heart_container = $MarginContainer/HBoxContainer 
 @onready var score_label = $MarginContainer2/ScoreLabel
-@onready var zone_label = $MarginContainer/Label
+@onready var zone_label = $MarginContainer4/Label 
 @onready var tex_full = preload("res://stuff/heart_full.tres")
 @onready var tex_half = preload("res://stuff/heart_half.tres") 
 @onready var tex_empty = preload("res://stuff/heart_empty.tres")
@@ -16,6 +15,9 @@ var pulse_tween: Tween
 
 func _ready():
 	add_to_group("hud")
+	player = get_tree().current_scene.find_child("executioner", true, false)
+	if player == null:
+		player = get_tree().current_scene.find_child("Player", true, false)
 	update_score_display()
 	
 	flash_mat = ShaderMaterial.new()
@@ -80,8 +82,7 @@ func flash_hearts():
 	tween.tween_callback(func(): flash_mat.set_shader_parameter("flash_value", 0.0))
 
 func update_meters():
-	if not ult_bar:
-		return
+	if not ult_bar or not is_instance_valid(player): return
 		
 	ult_bar.max_value = player.max_ult_charge
 	ult_bar.value = lerp(ult_bar.value, float(player.current_ult_charge), 0.1)
@@ -90,7 +91,8 @@ func update_meters():
 			
 	var is_ult_active = (player.get("is_in_the_zone") == true) or (player.get("is_awakened") == true)
 	var is_full = (player.current_ult_charge >= player.max_ult_charge)
-	var is_yuta = player.has_method("launch_meteor_leap")
+	
+	var is_yuta = (player.name == "executioner")
 	
 	if zone_label:
 		zone_label.text = "Come, Rika." if is_yuta else "THE ZONE"
@@ -99,16 +101,12 @@ func update_meters():
 	var active_dark_color = Color(0.5, 0.2, 0.35, 1.0) if is_yuta else Color(0.3, 0.3, 0.3, 1.0)
 	
 	var desired_state = "none"
-	if is_ult_active:
-		desired_state = "active"
-	elif is_full:
-		desired_state = "full"
+	if is_ult_active: desired_state = "active"
+	elif is_full: desired_state = "full"
 		
 	if current_pulse_state != desired_state:
 		current_pulse_state = desired_state
-		
-		if pulse_tween:
-			pulse_tween.kill()
+		if pulse_tween: pulse_tween.kill()
 			
 		if desired_state == "full":
 			pulse_tween = create_tween().set_loops()
@@ -116,13 +114,11 @@ func update_meters():
 			pulse_tween.tween_interval(0.15)
 			pulse_tween.tween_property(ult_bar, "modulate", base_color, 0.0)
 			pulse_tween.tween_interval(0.15)
-			
 		elif desired_state == "active":
 			pulse_tween = create_tween().set_loops()
 			pulse_tween.tween_property(ult_bar, "modulate", active_dark_color, 0.0)
 			pulse_tween.tween_interval(0.2)
 			pulse_tween.tween_property(ult_bar, "modulate", base_color, 0.0)
 			pulse_tween.tween_interval(0.2)
-			
 		else:
 			ult_bar.modulate = base_color

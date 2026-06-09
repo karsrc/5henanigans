@@ -260,37 +260,34 @@ func _on_frame_changed():
 			enemies_hit_this_punch.clear()
 			current_damage_multiplier = 2.5
 			execute_hitbox()
+
 	elif anim == "skill1":
+		var step_dir = Vector2.LEFT if $AnimatedSprite2D.flip_h else Vector2.RIGHT
 		if frame in [1, 3, 4]:
 			enemies_hit_this_punch.clear()
 			current_damage_multiplier = 0.5 
-			
-			var step_dir = Vector2.LEFT if $AnimatedSprite2D.flip_h else Vector2.RIGHT
-			velocity = step_dir * 180.0 
-			
+			velocity = step_dir * 250.0 
 			execute_hitbox()
-			
-		elif frame in [0, 2, 5, 7]:
-			velocity = Vector2.ZERO
-		if frame == 2:
-			$AnimatedSprite2D.speed_scale = 1.55 
-		if frame == 5 and is_barraging:
-			if barrage_hit_count < 5:
+		elif frame == 2:
+			$AnimatedSprite2D.speed_scale = randf_range(1.5, 2.2) 
+			velocity = step_dir * 80.0 
+		elif frame == 5:
+			if is_barraging and barrage_hit_count < 5: 
 				call_deferred("_loop_barrage") 
 				barrage_hit_count += 1
 			else:
-				$AnimatedSprite2D.speed_scale = 1.0
+				$AnimatedSprite2D.speed_scale = 1.0 
 				is_barraging = false
-			
-		if frame == 5 and is_barraging:
-			if Input.is_action_pressed("skill_1") and barrage_hit_count < 5:
-				$AnimatedSprite2D.speed_scale = 1.55
-				call_deferred("_loop_barrage")
-				barrage_hit_count += 1
-			else:
-				$AnimatedSprite2D.speed_scale = 1.0
-				is_barraging = false
-				
+				velocity = Vector2.ZERO
+		elif frame == 6:
+			velocity = Vector2.ZERO
+		elif frame == 7:
+			is_using_skill = false
+			is_barraging = false
+			velocity = Vector2.ZERO
+			$AnimatedSprite2D.speed_scale = 1.0
+			current_skill_1_cooldown = skill_1_cooldown
+			update_animation()
 	elif anim == "skill2":
 		if frame == 5:
 			is_invincible = true
@@ -317,8 +314,10 @@ func _on_animation_finished():
 	elif anim == "skill1":
 		is_using_skill = false
 		is_barraging = false
+		velocity = Vector2.ZERO
 		$AnimatedSprite2D.speed_scale = 1.0
 		current_skill_1_cooldown = skill_1_cooldown
+		update_animation()
 		
 	elif anim == "skill2":
 		is_using_skill = false

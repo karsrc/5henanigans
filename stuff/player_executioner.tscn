@@ -1522,7 +1522,7 @@ animation = &"swipe2"
 collision_mask = 2
 script = ExtResource("4_do6di")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AimPivot/AttackArea" unique_id=1169180591]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AimPivot/AttackArea" unique_id=1169180591 groups=["player"]]
 position = Vector2(16, 0.5)
 shape = SubResource("RectangleShape2D_dw050")
 

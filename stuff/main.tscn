@@ -168,57 +168,57 @@ region = Rect2(32, 0, 16, 16)
 atlas = ExtResource("7_272bh")
 region = Rect2(48, 0, 16, 16)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_pp8lv"]
+atlas = ExtResource("13_pp8lv")
+region = Rect2(0, 2016, 144, 144)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_ni35c"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(0, 192, 48, 48)
+region = Rect2(144, 2016, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ey66w"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(48, 192, 48, 48)
+region = Rect2(288, 2016, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0xab6"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(96, 192, 48, 48)
+region = Rect2(432, 2016, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4cxra"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(144, 192, 48, 48)
+region = Rect2(576, 2016, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ylhy0"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(192, 192, 48, 48)
+region = Rect2(720, 2016, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4mys6"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(240, 192, 48, 48)
+region = Rect2(864, 2016, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yroda"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(288, 192, 48, 48)
+region = Rect2(720, 1296, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_osxdp"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(240, 0, 48, 48)
+region = Rect2(576, 1296, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_gguo5"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(192, 0, 48, 48)
+region = Rect2(432, 1296, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ydygg"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(144, 0, 48, 48)
+region = Rect2(288, 1296, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_y2aef"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(96, 0, 48, 48)
+region = Rect2(144, 1296, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8a3td"]
 atlas = ExtResource("13_pp8lv")
-region = Rect2(48, 0, 48, 48)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_4xxig"]
-atlas = ExtResource("13_pp8lv")
-region = Rect2(0, 0, 48, 48)
+region = Rect2(0, 1296, 144, 144)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_dg77c"]
 animations = [{
@@ -241,6 +241,9 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_pp8lv")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_ni35c")
 }, {
 "duration": 1.0,
@@ -257,15 +260,15 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_4mys6")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_yroda")
 }],
 "loop": true,
 "name": &"executioner",
 "speed": 13.0
 }, {
 "frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yroda")
+}, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_osxdp")
 }, {
@@ -280,9 +283,6 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_8a3td")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_4xxig")
 }],
 "loop": false,
 "name": &"executionerH",
@@ -739,6 +739,7 @@ theme_override_constants/margin_left = 100
 theme_override_constants/margin_top = 50
 
 [node name="Label" type="Label" parent="hud/MarginContainer4" unique_id=951927972]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "   THE ZONE"
@@ -799,7 +800,8 @@ layout_mode = 2
 position = Vector2(100, 100)
 scale = Vector2(6, 6)
 sprite_frames = SubResource("SpriteFrames_dg77c")
-frame_progress = 0.24493754
+animation = &"executioner"
+frame_progress = 0.2627776
 
 [node name="RightArrow" type="Label" parent="MainMenuLayer/CharacterRow" unique_id=737117610]
 layout_mode = 2
