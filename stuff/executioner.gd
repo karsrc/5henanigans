@@ -19,9 +19,9 @@ var current_skill_2_cooldown: float = 0.0
 var skill_2_cooldown: float = 15.0
 var is_pulse_charging: bool = false
 
-# Skill 3: Meteor Leap
+# Skill 3: Cursed Energy Surge Dash
 var current_skill_3_cooldown: float = 0.0
-var skill_3_cooldown: float = 10.0
+var skill_3_cooldown: float = 5.0
 var is_leaping: bool = false
 
 # Ultimate: Come here Rika, give me everything.
@@ -79,9 +79,11 @@ func _physics_process(delta: float):
 		if Input.is_action_just_pressed("special_r"):
 			perform_rct()
 			
-		elif Input.is_action_just_pressed("skill_1"):
-			if current_skill_1_cooldown <= 0: perform_skill_1()
-			else: show_cooldown_warning("Barrage")
+		elif Input.is_action_just_pressed("skill_1") and not is_using_skill:
+			if current_skill_1_cooldown <= 0:
+				perform_skill_1()
+			else:
+				show_cooldown_warning("Energy Blast")
 				
 		elif Input.is_action_just_pressed("skill_2"):
 			if current_skill_2_cooldown <= 0: perform_skill_2()
@@ -89,7 +91,7 @@ func _physics_process(delta: float):
 				
 		elif Input.is_action_just_pressed("skill_3"):
 			if current_skill_3_cooldown <= 0: perform_skill_3()
-			else: show_cooldown_warning("Cursed Meteor")
+			else: show_cooldown_warning("Energy Surge Dash")
 				
 		elif Input.is_action_just_pressed("skill_4"):
 			if current_ult_charge >= max_ult_charge and not is_awakened: enter_awakening()
@@ -100,8 +102,9 @@ func _physics_process(delta: float):
 	if is_blocking:
 		velocity = Vector2.ZERO
 func update_animation():
-	if is_attacking or is_dashing or is_leaping or is_pulse_charging or is_blocking or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
+	if is_attacking or is_using_skill or is_blocking:
 		return 
+	super.update_animation() 
 		
 	var anim = "" 
 	if velocity != Vector2.ZERO:
@@ -301,11 +304,14 @@ func _on_frame_changed():
 		if frame == 1:
 			current_damage_multiplier = 2.0
 			execute_hitbox()
+	elif anim == "skill1":
+		if frame == 3:
+			velocity = Vector2.ZERO
+			fire_ce_blast()
 	elif anim == "skill2":
 		if frame == 5:
 			is_invincible = true
 			execute_pulse_explosion()
-			
 	elif anim == "skill3":
 		if frame == 1:
 			launch_meteor_leap()
@@ -330,10 +336,6 @@ func _on_animation_finished():
 		
 	elif anim == "skill1":
 		is_using_skill = false
-		is_barraging = false
-		velocity = Vector2.ZERO
-		$AnimatedSprite2D.speed_scale = 1.0
-		current_skill_1_cooldown = skill_1_cooldown
 		update_animation()
 		
 	elif anim == "skill2":
@@ -353,13 +355,31 @@ func _on_animation_finished():
 			$AnimatedSprite2D.frame = 5
 			$AnimatedSprite2D.pause()
 
+func fire_ce_blast():
+	shake_camera(12.0)
+	
+	if has_node("AudioManager"):
+		$AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1, -2.0) 
+		
+	if not ce_blast_scene:
+		print("ERROR: Please assign the CE Blast Scene in Yuta's Inspector!")
+		return
+		
+	var blast = ce_blast_scene.instantiate()
+	blast.global_position = global_position
+	var aim_dir = global_position.direction_to(get_global_mouse_position())
+	blast.direction = aim_dir
+	blast.rotation = aim_dir.angle()
+	
+	get_tree().current_scene.add_child(blast)
+
 func perform_skill_1():
 	is_using_skill = true
 	current_skill_1_cooldown = skill_1_cooldown
 	var mouse_pos = get_global_mouse_position()
 	$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
 	var recoil_dir = -global_position.direction_to(mouse_pos)
-	velocity = recoil_dir * 150.0 
+	velocity = recoil_dir * 30.0 
 	
 	$AnimatedSprite2D.play("skill1")
 func perform_skill_2():

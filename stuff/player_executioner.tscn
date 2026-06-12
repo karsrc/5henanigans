@@ -2,11 +2,13 @@
 
 [ext_resource type="Script" uid="uid://c7jjh5petkp0q" path="res://stuff/executioner.gd" id="1_3mlhv"]
 [ext_resource type="Texture2D" uid="uid://c5xaesmit26wi" path="res://stuff/Sprite-0002-Sheet.png" id="2_8nc3o"]
+[ext_resource type="PackedScene" uid="uid://bx3ovej0wjdih" path="res://yt_projectile.tscn" id="2_utbtc"]
 [ext_resource type="Script" uid="uid://bny1m0rolaj4m" path="res://stuff/area_2d.gd" id="4_do6di"]
 [ext_resource type="Texture2D" uid="uid://c0ahb30glcvwy" path="res://stuff/yuuuuta-Sheet.png" id="5_3mlhv"]
 [ext_resource type="Texture2D" uid="uid://b870ftrkmrnvb" path="res://addons/ASSETS/sprites/shadow.png" id="5_e1sjk"]
 [ext_resource type="Texture2D" uid="uid://bsirbmr817mmv" path="res://stuff/yuuuutsa-Sheet.png" id="6_8nc3o"]
 [ext_resource type="Script" uid="uid://dl1fmdy47fnqm" path="res://stuff/camera_2d.gd" id="7_55n5c"]
+[ext_resource type="Texture2D" uid="uid://bf500lrppw15t" path="res://stuff/skill1.png" id="8_do6di"]
 [ext_resource type="Texture2D" uid="uid://cuuniufqbe328" path="res://addons/ASSETS/sprites/crosshair.png" id="8_svyic"]
 [ext_resource type="Texture2D" uid="uid://c7x7lpdx75tby" path="res://stuff/icon.svg" id="9_pfoto"]
 [ext_resource type="Script" uid="uid://beoq5v680bh53" path="res://stuff/audio_manager.gd" id="10_8i050"]
@@ -599,36 +601,28 @@ atlas = ExtResource("5_3mlhv")
 region = Rect2(1008, 1008, 144, 144)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_p6a0y"]
-atlas = ExtResource("5_3mlhv")
-region = Rect2(0, 144, 144, 144)
+atlas = ExtResource("8_do6di")
+region = Rect2(0, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_sg8or"]
-atlas = ExtResource("5_3mlhv")
-region = Rect2(144, 144, 144, 144)
+atlas = ExtResource("8_do6di")
+region = Rect2(48, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5fwn4"]
-atlas = ExtResource("5_3mlhv")
-region = Rect2(288, 144, 144, 144)
+atlas = ExtResource("8_do6di")
+region = Rect2(96, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pio5o"]
-atlas = ExtResource("5_3mlhv")
-region = Rect2(432, 144, 144, 144)
+atlas = ExtResource("8_do6di")
+region = Rect2(144, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_oigp5"]
-atlas = ExtResource("5_3mlhv")
-region = Rect2(576, 144, 144, 144)
+atlas = ExtResource("8_do6di")
+region = Rect2(192, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ges2o"]
-atlas = ExtResource("5_3mlhv")
-region = Rect2(720, 144, 144, 144)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_pit4k"]
-atlas = ExtResource("5_3mlhv")
-region = Rect2(864, 144, 144, 144)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_gcu43"]
-atlas = ExtResource("5_3mlhv")
-region = Rect2(1008, 144, 144, 144)
+atlas = ExtResource("8_do6di")
+region = Rect2(240, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qp8x5"]
 atlas = ExtResource("5_3mlhv")
@@ -1222,12 +1216,6 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ges2o")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_pit4k")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_gcu43")
 }],
 "loop": false,
 "name": &"skill1",
@@ -1382,13 +1370,7 @@ y_sort_enabled = true
 collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_3mlhv")
-max_hp = null
-walk_speed = null
-run_speed = null
-dash_speed = null
-dash_cooldown = null
-block_speed_multiplier = null
-combo_drop_time = null
+ce_blast_scene = ExtResource("2_utbtc")
 
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
 show_behind_parent = true
@@ -1416,8 +1398,8 @@ texture = ExtResource("5_e1sjk")
 z_index = 2
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"block"
-frame = 7
+animation = &"skill1"
+frame = 5
 frame_progress = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
