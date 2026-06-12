@@ -76,9 +76,9 @@ func _physics_process(delta: float):
 		
 	if current_combo > 0 and not is_attacking:
 		time_since_last_hit += delta
-	if time_since_last_hit >= 0.8: 
-		current_combo = 0
-		score_combo = 0
+		if time_since_last_hit >= combo_drop_time: 
+			current_combo = 0
+			score_combo = 0
 
 	if not is_using_skill and not is_dashing:
 		direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -263,14 +263,14 @@ func update_animation():
 	
 	if velocity != Vector2.ZERO:
 		if speed == run_speed:
-			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
+			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x) * 1.5:
 				anim = "up-run"
 				last_anim_dir = "up"
 			else:
 				anim = "right-run"
 				last_anim_dir = "right"
 		else:
-			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
+			if velocity.y < 0 and abs(velocity.y) > abs(velocity.x) * 1.5:
 				anim = "up-walk" 
 				last_anim_dir = "up"
 			else:
@@ -281,7 +281,6 @@ func update_animation():
 			anim_sprite.flip_h = velocity.x < 0
 	else:
 		anim = last_anim_dir
-
 	if anim_sprite:
 		anim_sprite.play(anim + anim_suffix)
 

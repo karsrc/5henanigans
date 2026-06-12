@@ -25,7 +25,7 @@ var skill_3_cooldown: float = 10.0
 var is_leaping: bool = false
 
 # Ultimate: Come here Rika, give me everything.
-var max_ult_charge: int = 250
+var max_ult_charge: int = 1000
 var current_ult_charge: int = 0
 var is_awakened: bool = false
 var awakening_duration: float = 12.0
@@ -35,13 +35,23 @@ var awakening_timer: float = 0.0
 var current_damage_multiplier: float = 1.0
 var was_blocking: bool = false
 
+var _is_updating_aim: bool = false # Prevents an infinite signal loop
+
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	if crosshair: crosshair.z_index = 1000
 	current_hp = max_hp
 	$AnimatedSprite2D.frame_changed.connect(_on_frame_changed)
 	$AnimatedSprite2D.animation_finished.connect(_on_animation_finished)
-	if has_node("AimPivot/AimSprite"): $AimPivot/AimSprite.hide()
+	if has_node("AimPivot/AimSprite"): 
+		var aim_sprite = $AimPivot/AimSprite
+		aim_sprite.hide()
+		
+		if not aim_sprite.animation_finished.is_connected(aim_sprite.hide):
+			aim_sprite.animation_finished.connect(aim_sprite.hide)
+		if not aim_sprite.frame_changed.is_connected(_randomize_aim_sprite):
+			aim_sprite.frame_changed.connect(_randomize_aim_sprite)
+	combo_drop_time = 0.35
 
 func _physics_process(delta: float):
 	if current_skill_1_cooldown > 0: current_skill_1_cooldown -= delta
@@ -58,7 +68,7 @@ func _physics_process(delta: float):
 	was_blocking = is_blocking
 	if not is_blocking and not is_using_skill:
 		if Input.is_action_just_pressed("special_r"):
-			toggle_pink_aura()
+			perform_rct()
 			
 		elif Input.is_action_just_pressed("skill_1"):
 			if current_skill_1_cooldown <= 0: perform_skill_1()
@@ -126,37 +136,46 @@ func perform_punch():
 	if is_blocking: return
 	
 	is_attacking = true
-	var mouse_pos = get_global_mouse_position()
-	$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
+	time_since_last_hit = 0
+	enemies_hit_this_punch.clear() 
 	
-	var lunge_dir = global_position.direction_to(mouse_pos)
-	velocity = lunge_dir * 350.0 
+	current_combo += 1
+	if current_combo > 3: current_combo = 1
+	
+	var mouse_pos = get_global_mouse_position()
+	var diff = mouse_pos - global_position
+	
+	$AnimatedSprite2D.flip_h = diff.x < 0
+	var lunge_dir = diff.normalized()
+	if current_combo == 1 or current_combo == 2:
+		velocity = lunge_dir * 350.0
+	elif current_combo == 3:
+		velocity = lunge_dir * 450.0 
 	
 	if has_node("AudioManager"): 
 		$AudioManager.play_random_sound($AudioManager.light_whiffs)
+		
 	var aim_sprite_node = $AimPivot/AimSprite if has_node("AimPivot/AimSprite") else null
 	if aim_sprite_node:
 		aim_sprite_node.show() 
-		if current_combo == 0 or current_combo == 2:
-			aim_sprite_node.play("swipe1")
-			aim_sprite_node.flip_v = false
-		elif current_combo == 1:
-			aim_sprite_node.play("swipe2")
-			aim_sprite_node.flip_v = true
-	var is_aiming_front = mouse_pos.y > global_position.y + 15.0
-	var is_aiming_back = mouse_pos.y < global_position.y - 15.0
+		aim_sprite_node.play("swipe1")
+			
 	var suffix = ""
-	if is_aiming_front: suffix = "-front"
-	elif is_aiming_back: suffix = "-backwards"
-	
+	if diff.y > 0 and abs(diff.y) > abs(diff.x) * 1.2:
+		suffix = "-front"
 	var anim_to_play = "m1"
-	if current_combo == 0: anim_to_play = "m1" + suffix
-	elif current_combo == 1: anim_to_play = "m1-2" + suffix
-	else: anim_to_play = "m1-3" + suffix
+	
+	if current_combo == 1: 
+		anim_to_play = "m1" + suffix
+		$AnimatedSprite2D.speed_scale = 1.1
+	elif current_combo == 2: 
+		anim_to_play = "m1-2" + suffix
+		$AnimatedSprite2D.speed_scale = 1.4
+	elif current_combo == 3: 
+		anim_to_play = "m1-3" + suffix
+		$AnimatedSprite2D.speed_scale = 1.7
 		
 	$AnimatedSprite2D.play(anim_to_play)
-	
-	current_combo += 1
 
 func execute_hitbox():
 	var hit_enemy = false
@@ -240,27 +259,20 @@ func execute_hitbox():
 func _on_frame_changed():
 	var anim = $AnimatedSprite2D.animation
 	var frame = $AnimatedSprite2D.frame
-	if anim in ["m1", "m1-front", "m1-backwards"]:
-		if frame == 1: 
-			current_damage_multiplier = 1.0
+	if anim in ["m1", "m1-front"]:
+		if frame == 2: 
+			current_damage_multiplier = 1.2 
 			execute_hitbox()
-			
-	elif anim in ["m1-2", "m1-2-front", "m1-2-backwards"]:
-		if frame in [1, 6]: 
-			enemies_hit_this_punch.clear()
-			current_damage_multiplier = 1.0
+	elif anim in ["m1-2", "m1-2-front"]:
+		if frame == 3: 
+			current_damage_multiplier = 1.3
 			execute_hitbox()
-			
-	elif anim in ["m1-3", "m1-3-front", "m1-3-backwards"]:
-		if frame in [1, 6]:
-			enemies_hit_this_punch.clear()
-			current_damage_multiplier = 1.0
+	elif anim in ["m1-3", "m1-3-front"]:
+		if frame == 1:
+			current_damage_multiplier = 3.5 
 			execute_hitbox()
-		elif frame == 10: 
-			enemies_hit_this_punch.clear()
-			current_damage_multiplier = 2.5
-			execute_hitbox()
-
+	elif anim == "skill1":
+		pass # ...
 	elif anim == "skill1":
 		var step_dir = Vector2.LEFT if $AnimatedSprite2D.flip_h else Vector2.RIGHT
 		if frame in [1, 3, 4]:
@@ -305,11 +317,15 @@ func _on_frame_changed():
 
 func _on_animation_finished():
 	var anim = $AnimatedSprite2D.animation
-	
 	if anim.begins_with("m1"):
-		if has_node("AimPivot/AimSprite"): $AimPivot/AimSprite.hide()
-		punch_cooldown = 0.35 if current_combo >= 3 else 0.10
+		if has_node("AimPivot/AimSprite"): 
+			$AimPivot/AimSprite.hide()
+		if current_combo == 3:
+			punch_cooldown = 0.65 
+		else:
+			punch_cooldown = 0.15 
 		is_attacking = false
+		$AnimatedSprite2D.speed_scale = 1.0 
 		
 	elif anim == "skill1":
 		is_using_skill = false
@@ -373,15 +389,28 @@ func stop_meteor_leap():
 	shake_camera(10.0)
 	$AnimatedSprite2D.speed_scale = 1.0
 
-func toggle_pink_aura():
-	is_pink_aura_active = !is_pink_aura_active
-	if aura_tween: aura_tween.kill()
-	if is_pink_aura_active:
-		$AnimatedSprite2D.modulate = Color(5.0, 3.0, 5.0, 1.0) 
-		aura_tween = create_tween()
-		aura_tween.tween_property($AnimatedSprite2D, "modulate", Color(2.5, 1.2, 2.0, 1.0), 0.15).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+func perform_rct():
+	# Calculate exactly 25% of the max bar
+	var rct_cost = int(max_ult_charge * 0.25)
+	
+	# Prevent wasting energy if already at max health
+	if current_hp >= max_hp:
+		show_cooldown_warning("", "Health is already full!")
+		return
+		
+	if current_ult_charge >= rct_cost:
+		current_ult_charge -= rct_cost
+		current_hp += 2
+		if current_hp > max_hp: 
+			current_hp = max_hp
+		var flash_tween = create_tween()
+		$AnimatedSprite2D.modulate = Color(2.0, 2.0, 2.0, 1.0)
+		flash_tween.tween_property($AnimatedSprite2D, "modulate", Color(1, 1, 1, 1), 0.3)
+		if has_node("AudioManager"):
+			$AudioManager.play_random_sound($AudioManager.blocks)
+			
 	else:
-		$AnimatedSprite2D.modulate = Color(1, 1, 1, 1)
+		show_cooldown_warning("", "Not enough Cursed Energy!")
 
 func enter_awakening():
 	is_using_skill = true
@@ -418,3 +447,16 @@ func trigger_hit_stop_custom(duration: float):
 	Engine.time_scale = 0.05
 	await get_tree().create_timer(duration, true, false, true).timeout
 	Engine.time_scale = 1.0
+
+func _randomize_aim_sprite():
+	if _is_updating_aim: return
+	var aim = $AimPivot/AimSprite
+	if not aim.is_playing(): return
+	var current_frame = aim.frame
+	var new_anim = "swipe1" if randf() > 0.5 else "swipe2"
+	if aim.animation != new_anim:
+		_is_updating_aim = true
+		aim.animation = new_anim
+		aim.frame = current_frame
+		aim.flip_v = randf() > 0.5 
+		_is_updating_aim = false
