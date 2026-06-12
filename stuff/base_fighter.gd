@@ -17,6 +17,7 @@ signal enemy_hit(points_earned: int, current_multiplier: int)
 @export var run_speed: float = 300.0
 @export var dash_speed: int = 500
 @export var dash_cooldown: float = 1.2
+@export var block_speed_multiplier: float = 0.3
 @export var combo_drop_time: float = 1.0
 @export var damage_popup_scene: PackedScene
 
@@ -96,7 +97,7 @@ func _physics_process(delta: float):
 			if not is_blocking: 
 				if audio_manager: audio_manager.play_random_sound(audio_manager.light_whiffs, 0.8, 0.1, -5.0)
 			is_blocking = true
-			velocity = direction * (speed * 0.3)
+			velocity = direction * (speed * block_speed_multiplier)
 		else:
 			is_blocking = false
 			velocity = direction * speed

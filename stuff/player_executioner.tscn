@@ -1382,6 +1382,13 @@ y_sort_enabled = true
 collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_3mlhv")
+max_hp = null
+walk_speed = null
+run_speed = null
+dash_speed = null
+dash_cooldown = null
+block_speed_multiplier = null
+combo_drop_time = null
 
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
 show_behind_parent = true
@@ -1409,7 +1416,9 @@ texture = ExtResource("5_e1sjk")
 z_index = 2
 position = Vector2(0, -1)
 sprite_frames = SubResource("SpriteFrames_1jxqw")
-animation = &"dash"
+animation = &"block"
+frame = 7
+frame_progress = 1.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1720256694]
 zoom = Vector2(1.8, 1.8)

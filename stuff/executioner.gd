@@ -5,14 +5,14 @@ extends BaseFighter
 @onready var attack_area = $AimPivot/AttackArea
 
 # special r
+# old code but im too lazy to delete ts
 var is_pink_aura_active: bool = false
 var aura_tween: Tween
 
-# Skill 1: Katana Barrage
+# Skill 1: Cursed Energy Blast
 var current_skill_1_cooldown: float = 0.0
-var skill_1_cooldown: float = 9.0
-var is_barraging: bool = false
-var barrage_hit_count: int = 0
+var skill_1_cooldown: float = 6.0
+@export var ce_blast_scene: PackedScene 
 
 # Skill 2: CE Pulse
 var current_skill_2_cooldown: float = 0.0
@@ -35,9 +35,12 @@ var awakening_timer: float = 0.0
 var current_damage_multiplier: float = 1.0
 var was_blocking: bool = false
 
-var _is_updating_aim: bool = false # Prevents an infinite signal loop
+var _is_updating_aim: bool = false 
 
 func _ready() -> void:
+	block_speed_multiplier = 0.0
+	if not damage_popup_scene:
+		damage_popup_scene = preload("res://stuff/damage_popup.tscn")
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	if crosshair: crosshair.z_index = 1000
 	current_hp = max_hp
@@ -47,11 +50,17 @@ func _ready() -> void:
 		var aim_sprite = $AimPivot/AimSprite
 		aim_sprite.hide()
 		
+		
 		if not aim_sprite.animation_finished.is_connected(aim_sprite.hide):
 			aim_sprite.animation_finished.connect(aim_sprite.hide)
 		if not aim_sprite.frame_changed.is_connected(_randomize_aim_sprite):
 			aim_sprite.frame_changed.connect(_randomize_aim_sprite)
 	combo_drop_time = 0.35
+	
+
+func perform_dash():
+	pass 
+
 
 func _physics_process(delta: float):
 	if current_skill_1_cooldown > 0: current_skill_1_cooldown -= delta
@@ -87,8 +96,11 @@ func _physics_process(delta: float):
 			elif current_ult_charge < max_ult_charge and not is_awakened: show_cooldown_warning("", "Awakening isn't ready yet!")
 			
 	super._physics_process(delta)
+	
+	if is_blocking:
+		velocity = Vector2.ZERO
 func update_animation():
-	if is_attacking or is_dashing or is_leaping or is_barraging or is_pulse_charging or is_blocking or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
+	if is_attacking or is_dashing or is_leaping or is_pulse_charging or is_blocking or (punch_cooldown > 0 and Input.is_action_pressed("attack")):
 		return 
 		
 	var anim = "" 
@@ -118,9 +130,9 @@ func update_animation():
 
 func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, attacker_pos: Vector2 = Vector2.ZERO):
 	if is_blocking:
-		anim_sprite.play("block")
-		anim_sprite.frame = 5
-		damage_amount = int(damage_amount * 0.2)
+		$AnimatedSprite2D.play("block")
+		$AnimatedSprite2D.frame = 6
+		damage_amount = int(damage_amount * 0)
 	if is_pulse_charging and anim_sprite.animation == "skill2" and anim_sprite.frame < 5:
 		is_pulse_charging = false
 		is_using_skill = false
@@ -192,8 +204,7 @@ func execute_hitbox():
 		var distance = global_position.distance_to(enemy.global_position)
 		var dir_to_enemy = global_position.direction_to(enemy.global_position)
 		var is_in_front = locked_aim_direction.dot(dir_to_enemy) > 0.3
-		
-		if attack_area.overlaps_body(enemy) or (distance <= 65 and is_in_front):
+		if attack_area.overlaps_body(enemy) or (distance <= 85 and is_in_front):
 			if enemy.has_method("take_damage"):
 				if enemy in enemies_hit_this_punch: continue
 					
@@ -205,54 +216,73 @@ func execute_hitbox():
 				Global.total_score += 50 + ((score_combo - 1) * 25)
 				get_tree().call_group("hud", "update_score_display")
 				
-				if is_pink_aura_active:
-					if audio_manager: audio_manager.play_random_sound(audio_manager.heavy_impacts, 0.9, 0.1)
-				else:
-					if audio_manager: audio_manager.play_random_sound(audio_manager.light_impacts)
+				if audio_manager:
+					if current_combo == 3:
+						audio_manager.play_random_sound(audio_manager.heavy_impacts, 1.2, 0.1)
+					else:
+						audio_manager.play_random_sound(audio_manager.light_impacts)
 					
-				var base_damage: int = int((15 + (current_combo * 3)) * current_damage_multiplier)
-				var knockback_distance: float = (10.0 + (current_combo * 4.0)) * current_damage_multiplier
-				
-				if is_pink_aura_active:
-					knockback_distance += 5.0
-					base_damage = int(base_damage * 1.5)
+				var base_damage: int = int((8 + (current_combo * 2)) * current_damage_multiplier)
+				var knockback_distance: float = (8.0 + (current_combo * 3.0)) * current_damage_multiplier
 					
 				if is_awakened:
-					base_damage += 20
+					base_damage += 15
+					knockback_distance += 8.0
 					current_hp = min(current_hp + 1, max_hp)
 					
 				var shove_dir = global_position.direction_to(enemy.global_position)
 				enemy.global_position += shove_dir * knockback_distance
 				
 				enemy.take_damage(base_damage)
-				
+				if enemy.has_node("AnimatedSprite2D"):
+					var sprite = enemy.get_node("AnimatedSprite2D")
+					var flash_tween = create_tween()
+					sprite.self_modulate = Color(15, 15, 15, 1) 
+					flash_tween.tween_property(sprite, "self_modulate", Color(1, 1, 1, 1), 0.15)
 				if damage_popup_scene:
 					var popup = damage_popup_scene.instantiate()
 					popup.global_position = enemy.global_position + Vector2(0, -10)
 					get_tree().current_scene.add_child(popup)
 					popup.setup(base_damage, current_combo, is_awakened)
-				
 				add_ult_charge(base_damage)
 				if enemy.has_method("apply_slow"): enemy.apply_slow()
 
 	if hit_enemy:
-		var shake_intensity = 5.0 * current_damage_multiplier
-		if current_combo >= 3: shake_intensity = 14.0
-		if is_pink_aura_active: shake_intensity += 10.0
+		var shake_intensity = 6.0 * current_damage_multiplier
+		if current_combo >= 3: shake_intensity = 18.0
 		if is_awakened: shake_intensity += 20.0
 		shake_camera(shake_intensity)
-		
-		if (is_pink_aura_active or is_awakened) and last_hit_pos != Vector2.ZERO:
-			velocity += -global_position.direction_to(last_hit_pos) * (200.0 if is_awakened else 150.0)
-			
+		if last_hit_pos != Vector2.ZERO:
+			var recoil_force = 40.0 * current_damage_multiplier
+			if is_awakened: recoil_force = 150.0
+			velocity += -global_position.direction_to(last_hit_pos) * recoil_force
 		if is_awakened and last_hit_pos != Vector2.ZERO and black_flash_scene != null:
 			if audio_manager: audio_manager.play_random_sound(audio_manager.heavy_impacts, 1.5, 0.1, -2.0)
 			var sparks = black_flash_scene.instantiate()
 			sparks.global_position = last_hit_pos
 			get_tree().current_scene.add_child(sparks)
-		
 		var stop_duration = 0.03
-		if is_pink_aura_active: stop_duration = 0.08
+		if current_combo == 3: stop_duration = 0.09
+		if is_awakened: stop_duration = 0.18
+		
+		trigger_hit_stop_custom(stop_duration)
+
+	if hit_enemy:
+		var shake_intensity = 6.0 * current_damage_multiplier
+		if current_combo >= 3: shake_intensity = 18.0
+		if is_awakened: shake_intensity += 20.0
+		shake_camera(shake_intensity)
+		if last_hit_pos != Vector2.ZERO:
+			var recoil_force = 40.0 * current_damage_multiplier
+			if is_awakened: recoil_force = 150.0
+			velocity += -global_position.direction_to(last_hit_pos) * recoil_force
+		if is_awakened and last_hit_pos != Vector2.ZERO and black_flash_scene != null:
+			if audio_manager: audio_manager.play_random_sound(audio_manager.heavy_impacts, 1.5, 0.1, -2.0)
+			var sparks = black_flash_scene.instantiate()
+			sparks.global_position = last_hit_pos
+			get_tree().current_scene.add_child(sparks)
+		var stop_duration = 0.03
+		if current_combo == 3: stop_duration = 0.09
 		if is_awakened: stop_duration = 0.18
 		
 		trigger_hit_stop_custom(stop_duration)
@@ -261,45 +291,16 @@ func _on_frame_changed():
 	var frame = $AnimatedSprite2D.frame
 	if anim in ["m1", "m1-front"]:
 		if frame == 2: 
-			current_damage_multiplier = 1.2 
+			current_damage_multiplier = 1.0
 			execute_hitbox()
 	elif anim in ["m1-2", "m1-2-front"]:
 		if frame == 3: 
-			current_damage_multiplier = 1.3
+			current_damage_multiplier = 1.0
 			execute_hitbox()
 	elif anim in ["m1-3", "m1-3-front"]:
 		if frame == 1:
-			current_damage_multiplier = 3.5 
+			current_damage_multiplier = 2.0
 			execute_hitbox()
-	elif anim == "skill1":
-		pass # ...
-	elif anim == "skill1":
-		var step_dir = Vector2.LEFT if $AnimatedSprite2D.flip_h else Vector2.RIGHT
-		if frame in [1, 3, 4]:
-			enemies_hit_this_punch.clear()
-			current_damage_multiplier = 0.5 
-			velocity = step_dir * 250.0 
-			execute_hitbox()
-		elif frame == 2:
-			$AnimatedSprite2D.speed_scale = randf_range(1.5, 2.2) 
-			velocity = step_dir * 80.0 
-		elif frame == 5:
-			if is_barraging and barrage_hit_count < 5: 
-				call_deferred("_loop_barrage") 
-				barrage_hit_count += 1
-			else:
-				$AnimatedSprite2D.speed_scale = 1.0 
-				is_barraging = false
-				velocity = Vector2.ZERO
-		elif frame == 6:
-			velocity = Vector2.ZERO
-		elif frame == 7:
-			is_using_skill = false
-			is_barraging = false
-			velocity = Vector2.ZERO
-			$AnimatedSprite2D.speed_scale = 1.0
-			current_skill_1_cooldown = skill_1_cooldown
-			update_animation()
 	elif anim == "skill2":
 		if frame == 5:
 			is_invincible = true
@@ -312,7 +313,7 @@ func _on_frame_changed():
 			stop_meteor_leap()
 			
 	elif anim == "block":
-		if frame == 4: 
+		if frame == 5: 
 			$AnimatedSprite2D.pause()
 
 func _on_animation_finished():
@@ -345,15 +346,22 @@ func _on_animation_finished():
 		is_using_skill = false
 		is_leaping = false
 		current_skill_3_cooldown = skill_3_cooldown
+		
+	elif anim == "block":
+		if is_blocking:
+			$AnimatedSprite2D.play("block")
+			$AnimatedSprite2D.frame = 5
+			$AnimatedSprite2D.pause()
 
 func perform_skill_1():
 	is_using_skill = true
-	is_barraging = true
-	barrage_hit_count = 0
-	velocity = Vector2.ZERO
-	$AnimatedSprite2D.speed_scale = 1.0
+	current_skill_1_cooldown = skill_1_cooldown
+	var mouse_pos = get_global_mouse_position()
+	$AnimatedSprite2D.flip_h = mouse_pos.x < global_position.x
+	var recoil_dir = -global_position.direction_to(mouse_pos)
+	velocity = recoil_dir * 150.0 
+	
 	$AnimatedSprite2D.play("skill1")
-
 func perform_skill_2():
 	is_using_skill = true
 	is_pulse_charging = true
@@ -390,10 +398,7 @@ func stop_meteor_leap():
 	$AnimatedSprite2D.speed_scale = 1.0
 
 func perform_rct():
-	# Calculate exactly 25% of the max bar
 	var rct_cost = int(max_ult_charge * 0.25)
-	
-	# Prevent wasting energy if already at max health
 	if current_hp >= max_hp:
 		show_cooldown_warning("", "Health is already full!")
 		return
@@ -437,6 +442,7 @@ func exit_awakening():
 	is_awakened = false
 	$AnimatedSprite2D.speed_scale = 1.0
 	$AnimatedSprite2D.modulate = Color(1, 1, 1)
+	max_ult_charge = int(max_ult_charge * 1.5)
 
 func add_ult_charge(amount: int):
 	if current_ult_charge >= max_ult_charge: return
