@@ -331,9 +331,13 @@ func _on_frame_changed():
 			explosion_radius = 45.0 
 		elif frame == 7:
 			explosion_radius = 85.0 
-			shake_camera(28.0)
-			if has_node("AudioManager"):
-				$AudioManager.play_random_sound($AudioManager.heavy_impacts, 1.2, 0.1, -3.0)
+			shake_camera(55.0)
+			
+			if has_node("AudioManager") and $AudioManager.skill_sounds.size() >= 3:
+				var sound_1: Array[AudioStream] = [$AudioManager.skill_sounds[1]]
+				var sound_2: Array[AudioStream] = [$AudioManager.skill_sounds[2]]
+				$AudioManager.play_random_sound(sound_1, 1.0, 0.0, 8.0)
+				$AudioManager.play_random_sound(sound_2, 1.0, 0.0, 8.0)
 				
 		elif frame == 8:
 			explosion_radius = 120.0 
@@ -421,21 +425,16 @@ func _on_animation_finished():
 			$AnimatedSprite2D.pause()
 
 func fire_ce_blast():
-	shake_camera(12.0)
+	shake_camera(15.0)
 	
-	if has_node("AudioManager"):
-		$AudioManager.play_random_sound($AudioManager.heavy_impacts, 0.9, 0.1, -2.0) 
-		
-	if not ce_blast_scene:
-		print("ERROR: Please assign the CE Blast Scene in Yuta's Inspector!")
-		return
-		
+	if has_node("AudioManager") and $AudioManager.skill_sounds.size() > 0:
+		var sound_arr: Array[AudioStream] = [$AudioManager.skill_sounds[0]]
+		$AudioManager.play_random_sound(sound_arr, 1.0, 0.05, 16.0) 
 	var blast = ce_blast_scene.instantiate()
 	blast.global_position = global_position
 	var aim_dir = global_position.direction_to(get_global_mouse_position())
 	blast.direction = aim_dir
 	blast.rotation = aim_dir.angle()
-	
 	get_tree().current_scene.add_child(blast)
 
 func perform_skill_1():
