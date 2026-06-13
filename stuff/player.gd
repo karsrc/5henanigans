@@ -130,17 +130,21 @@ func _on_frame_changed():
 	
 	if current_anim.begins_with("up-run"):
 		if current_frame in [0, 2, 4]: 
+			spawn_footstep_dust()
 			$AudioManager.play_random_sound($AudioManager.footsteps_run, 1.0, 0.1, -8.0)
 			
 	elif current_anim.contains("run"):
 		if current_frame in [2, 6, 7]: 
+			spawn_footstep_dust()
 			$AudioManager.play_random_sound($AudioManager.footsteps_run, 1.0, 0.1, -8.0)
 	elif current_anim.begins_with("up-walk"):
 		if current_frame in [0, 2, 4]:
+			spawn_footstep_dust()
 			$AudioManager.play_random_sound($AudioManager.footsteps_walk)
 			
 	elif current_anim.contains("walk"):
 		if current_frame in [0, 2, 4, 6]:
+			spawn_footstep_dust()
 			$AudioManager.play_random_sound($AudioManager.footsteps_walk)
 	if current_anim.begins_with("m1"):
 		

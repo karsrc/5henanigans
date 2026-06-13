@@ -10,6 +10,7 @@ signal enemy_hit(points_earned: int, current_multiplier: int)
 @onready var anim_sprite = $AnimatedSprite2D
 @onready var audio_manager = $AudioManager
 @onready var tile_map = get_parent().get_node_or_null("board")
+@export var footstep_particle_scene: PackedScene
 
 # UNIVERSAL STATS & STATES
 @export var max_hp: int = 6
@@ -111,6 +112,12 @@ func _physics_process(delta: float):
 	update_animation()
 
 # UNIVERSAL MECHANICS
+func spawn_footstep_dust():
+	if footstep_particle_scene:
+		var dust = footstep_particle_scene.instantiate()
+		dust.global_position = global_position + Vector2(0, 12) 
+		get_tree().current_scene.add_child(dust)
+
 func perform_dash():
 	is_using_skill = true 
 	is_dashing = true 

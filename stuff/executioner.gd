@@ -159,9 +159,13 @@ func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, at
 		
 	if is_invincible:
 		return
+	is_attacking = false
+	is_using_skill = false
+	$AnimatedSprite2D.speed_scale = 1.0
+	if has_node("AimPivot/AimSprite"):
+		$AimPivot/AimSprite.hide()
 		
 	super.take_damage(damage_amount, knockback_force, attacker_pos)
-
 func perform_punch():
 	if is_blocking: return
 	
@@ -287,6 +291,24 @@ func execute_hitbox():
 func _on_frame_changed():
 	var anim = $AnimatedSprite2D.animation
 	var frame = $AnimatedSprite2D.frame
+	if anim in ["run", "run_backwards"]:
+		if frame in [2, 6]: 
+			spawn_footstep_dust()
+			if has_node("AudioManager"):
+				$AudioManager.play_random_sound($AudioManager.footsteps_run, 1.0, 0.1, -8.0)
+				
+	elif anim == "walk":
+		if frame in [2, 6]:
+			spawn_footstep_dust()
+			if has_node("AudioManager"):
+				$AudioManager.play_random_sound($AudioManager.footsteps_walk)
+				
+	elif anim == "walk_backwards":
+		if frame in [1, 3]:
+			spawn_footstep_dust()
+			if has_node("AudioManager"):
+				$AudioManager.play_random_sound($AudioManager.footsteps_walk)
+
 	if anim in ["m1", "m1-front"]:
 		if frame == 2: 
 			current_damage_multiplier = 1.0
@@ -340,7 +362,7 @@ func process_skill_2_hitbox(radius: float):
 			if enemy.has_method("take_damage"):
 				enemies_hit_skill_2.append(enemy)
 				
-				var base_damage = 35
+				var base_damage = 60
 				if is_awakened: base_damage += 20
 				
 				var blast_dir = global_position.direction_to(enemy.global_position)
@@ -438,7 +460,7 @@ func execute_pulse_explosion():
 	for enemy in all_enemies:
 		if global_position.distance_to(enemy.global_position) <= 120.0:
 			if enemy.has_method("take_damage"):
-				enemy.take_damage(45)
+				enemy.take_damage(30)
 				if enemy.has_method("stun"): enemy.stun(2.0)
 				enemy.global_position += global_position.direction_to(enemy.global_position) * 60.0
 

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://c7jjh5petkp0q" path="res://stuff/executioner.gd" id="1_3mlhv"]
 [ext_resource type="Texture2D" uid="uid://c5xaesmit26wi" path="res://stuff/Sprite-0002-Sheet.png" id="2_8nc3o"]
 [ext_resource type="PackedScene" uid="uid://bx3ovej0wjdih" path="res://yt_projectile.tscn" id="2_utbtc"]
+[ext_resource type="PackedScene" uid="uid://c0kje66gorrbr" path="res://footstep_dust.tscn" id="3_e1sjk"]
 [ext_resource type="Script" uid="uid://bny1m0rolaj4m" path="res://stuff/area_2d.gd" id="4_do6di"]
 [ext_resource type="Texture2D" uid="uid://c0ahb30glcvwy" path="res://stuff/yuuuuta-Sheet.png" id="5_3mlhv"]
 [ext_resource type="Texture2D" uid="uid://b870ftrkmrnvb" path="res://addons/ASSETS/sprites/shadow.png" id="5_e1sjk"]
@@ -30,6 +31,9 @@
 [ext_resource type="AudioStream" uid="uid://bu34uh4jgh7cw" path="res://addons/ASSETS/sounds/FootstepsWalk.wav" id="25_b54ft"]
 [ext_resource type="AudioStream" uid="uid://b18yfmnm8hc72" path="res://addons/ASSETS/sounds/Death.wav" id="26_y3shn"]
 [ext_resource type="AudioStream" uid="uid://c6b2m5xkcax52" path="res://addons/ASSETS/sounds/Death1.wav" id="27_hh8yi"]
+[ext_resource type="AudioStream" uid="uid://dec6rggvj4lvq" path="res://addons/ASSETS/sounds/yutaskill1.wav" id="32_svyic"]
+[ext_resource type="AudioStream" uid="uid://dr0l2fijffaxb" path="res://addons/ASSETS/sounds/yutaskill2-1.wav" id="33_pfoto"]
+[ext_resource type="AudioStream" uid="uid://dyudyx78i4oy3" path="res://addons/ASSETS/sounds/yutaskill2.wav" id="34_8i050"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_86y8q"]
 atlas = ExtResource("2_8nc3o")
@@ -1372,6 +1376,7 @@ collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_3mlhv")
 ce_blast_scene = ExtResource("2_utbtc")
+footstep_particle_scene = ExtResource("3_e1sjk")
 
 [node name="AimPivot" type="Marker2D" parent="." unique_id=317574860]
 show_behind_parent = true
@@ -1440,3 +1445,4 @@ dashes = Array[AudioStream]([ExtResource("22_pit4k"), ExtResource("23_gcu43")])
 footsteps_run = Array[AudioStream]([ExtResource("24_qp8x5")])
 footsteps_walk = Array[AudioStream]([ExtResource("25_b54ft")])
 death_sounds = Array[AudioStream]([ExtResource("26_y3shn"), ExtResource("27_hh8yi")])
+skill_sounds = Array[AudioStream]([ExtResource("32_svyic"), ExtResource("33_pfoto"), ExtResource("34_8i050")])
