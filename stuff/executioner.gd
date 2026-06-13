@@ -136,9 +136,21 @@ func update_animation():
 
 func take_damage(damage_amount: int, knockback_force: Vector2 = Vector2.ZERO, attacker_pos: Vector2 = Vector2.ZERO):
 	if is_blocking:
-		$AnimatedSprite2D.play("block")
-		$AnimatedSprite2D.frame = 6
-		damage_amount = int(damage_amount * 0)
+		var block_cost = damage_amount * 2
+		
+		if current_ult_charge >= block_cost:
+			current_ult_charge -= block_cost
+			$AnimatedSprite2D.play("block")
+			$AnimatedSprite2D.frame = 6
+			damage_amount = 0
+		else:
+			is_blocking = false
+			show_cooldown_warning("", "GUARD BROKEN!")
+			damage_amount = int(damage_amount * 1.5)
+			current_ult_charge = 0
+			if has_node("AudioManager"): 
+				$AudioManager.play_random_sound($AudioManager.heavy_impacts, 1.2, 0.1, -2.0)
+
 	if is_pulse_charging and anim_sprite.animation == "skill2" and anim_sprite.frame < 5:
 		is_pulse_charging = false
 		is_using_skill = false
@@ -252,26 +264,6 @@ func execute_hitbox():
 					popup.setup(base_damage, current_combo, is_awakened)
 				add_ult_charge(base_damage)
 				if enemy.has_method("apply_slow"): enemy.apply_slow()
-
-	if hit_enemy:
-		var shake_intensity = 6.0 * current_damage_multiplier
-		if current_combo >= 3: shake_intensity = 18.0
-		if is_awakened: shake_intensity += 20.0
-		shake_camera(shake_intensity)
-		if last_hit_pos != Vector2.ZERO:
-			var recoil_force = 40.0 * current_damage_multiplier
-			if is_awakened: recoil_force = 150.0
-			velocity += -global_position.direction_to(last_hit_pos) * recoil_force
-		if is_awakened and last_hit_pos != Vector2.ZERO and black_flash_scene != null:
-			if audio_manager: audio_manager.play_random_sound(audio_manager.heavy_impacts, 1.5, 0.1, -2.0)
-			var sparks = black_flash_scene.instantiate()
-			sparks.global_position = last_hit_pos
-			get_tree().current_scene.add_child(sparks)
-		var stop_duration = 0.03
-		if current_combo == 3: stop_duration = 0.09
-		if is_awakened: stop_duration = 0.18
-		
-		trigger_hit_stop_custom(stop_duration)
 
 	if hit_enemy:
 		var shake_intensity = 6.0 * current_damage_multiplier

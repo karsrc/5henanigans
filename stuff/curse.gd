@@ -117,6 +117,7 @@ func update_animation():
 		anim.play(color_prefix + "idle")
 
 func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, knockback_force: float = 250.0):
+	if current_hp <= 0: return
 	current_hp -= damage_amount
 	health_bar.value = current_hp
 	
@@ -155,6 +156,7 @@ func stun(duration: float):
 	anim.play(color_prefix + "hurt")
 	
 	await get_tree().create_timer(duration, false, false, true).timeout
+	if not is_inside_tree() or current_hp <= 0: return
 	
 	if current_hp > 0:
 		is_stunned = false
@@ -181,6 +183,7 @@ func prepare_and_attack():
 			if fps > 0:
 				var time_to_hit = (frames / fps) / 2.0
 				await get_tree().create_timer(time_to_hit, false, false, true).timeout
+				if not is_inside_tree() or current_hp <= 0: return
 		else:
 			await get_tree().create_timer(0.5, false, false, true).timeout
 	else:
