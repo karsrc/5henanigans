@@ -18,6 +18,7 @@ var skill_1_cooldown: float = 6.0
 var current_skill_2_cooldown: float = 0.0
 var skill_2_cooldown: float = 15.0
 var is_pulse_charging: bool = false
+var enemies_hit_skill_2: Array = []
 
 # Skill 3: Cursed Energy Surge Dash
 var current_skill_3_cooldown: float = 0.0
@@ -85,9 +86,11 @@ func _physics_process(delta: float):
 			else:
 				show_cooldown_warning("Energy Blast")
 				
-		elif Input.is_action_just_pressed("skill_2"):
-			if current_skill_2_cooldown <= 0: perform_skill_2()
-			else: show_cooldown_warning("Cursed Pulse")
+		elif Input.is_action_just_pressed("skill_2") and not is_using_skill:
+			if current_skill_2_cooldown <= 0:
+				perform_skill_2()
+			else:
+				show_cooldown_warning("Energy Pressure Wave")
 				
 		elif Input.is_action_just_pressed("skill_3"):
 			if current_skill_3_cooldown <= 0: perform_skill_3()
@@ -309,9 +312,21 @@ func _on_frame_changed():
 			velocity = Vector2.ZERO
 			fire_ce_blast()
 	elif anim == "skill2":
-		if frame == 5:
-			is_invincible = true
-			execute_pulse_explosion()
+		var explosion_radius = 0.0
+		if frame == 6:
+			explosion_radius = 45.0 
+		elif frame == 7:
+			explosion_radius = 85.0 
+			shake_camera(28.0)
+			if has_node("AudioManager"):
+				$AudioManager.play_random_sound($AudioManager.heavy_impacts, 1.2, 0.1, -3.0)
+				
+		elif frame == 8:
+			explosion_radius = 120.0 
+			
+		if explosion_radius > 0:
+			process_skill_2_hitbox(explosion_radius)
+			
 	elif anim == "skill3":
 		if frame == 1:
 			launch_meteor_leap()
@@ -321,6 +336,41 @@ func _on_frame_changed():
 	elif anim == "block":
 		if frame == 5: 
 			$AnimatedSprite2D.pause()
+
+func process_skill_2_hitbox(radius: float):
+	var all_enemies = get_tree().get_nodes_in_group("enemy")
+	
+	for enemy in all_enemies:
+		if not is_instance_valid(enemy) or enemy in enemies_hit_skill_2: 
+			continue 
+		var distance = global_position.distance_to(enemy.global_position)
+		if distance <= radius:
+			if enemy.has_method("take_damage"):
+				enemies_hit_skill_2.append(enemy)
+				
+				var base_damage = 35
+				if is_awakened: base_damage += 20
+				
+				var blast_dir = global_position.direction_to(enemy.global_position)
+				enemy.global_position += blast_dir * 50.0 
+				
+				enemy.take_damage(base_damage)
+				add_ult_charge(base_damage)
+				
+				if enemy.has_node("AnimatedSprite2D"):
+					var sprite = enemy.get_node("AnimatedSprite2D")
+					var flash_tween = create_tween()
+					sprite.self_modulate = Color(15, 15, 15, 1) 
+					flash_tween.tween_property(sprite, "self_modulate", Color(1, 1, 1, 1), 0.15)
+					
+				if enemy.has_method("apply_slow"): 
+					enemy.apply_slow()
+					
+				if damage_popup_scene:
+					var popup = damage_popup_scene.instantiate()
+					popup.global_position = enemy.global_position + Vector2(0, -10)
+					get_tree().current_scene.add_child(popup)
+					popup.setup(base_damage, 0, is_awakened)
 
 func _on_animation_finished():
 	var anim = $AnimatedSprite2D.animation
@@ -343,6 +393,7 @@ func _on_animation_finished():
 		is_pulse_charging = false
 		is_invincible = false
 		current_skill_2_cooldown = skill_2_cooldown
+		update_animation()
 		
 	elif anim == "skill3":
 		is_using_skill = false
@@ -384,8 +435,9 @@ func perform_skill_1():
 	$AnimatedSprite2D.play("skill1")
 func perform_skill_2():
 	is_using_skill = true
-	is_pulse_charging = true
+	current_skill_2_cooldown = skill_2_cooldown
 	velocity = Vector2.ZERO
+	enemies_hit_skill_2.clear()
 	$AnimatedSprite2D.play("skill2")
 
 func execute_pulse_explosion():
