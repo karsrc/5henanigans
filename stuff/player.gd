@@ -34,10 +34,10 @@ var is_countering: bool = false
 var manji_damage: int = 25
 
 # Ultimate
-var max_ult_charge: int = 250
+var max_ult_charge: int = 500
 var current_ult_charge: int = 0
 var is_in_the_zone: bool = false
-var zone_duration: float = 12.0
+var zone_duration: float = 18.0
 var zone_timer: float = 0.0
 
 func _ready() -> void:
@@ -235,6 +235,10 @@ func execute_hitbox():
 			if last_hit_pos != Vector2.ZERO and "black_flash_scene" in self and black_flash_scene != null:
 				var sparks = black_flash_scene.instantiate()
 				sparks.global_position = last_hit_pos
+				if "spark_velocity" in sparks:
+					var punch_dir = global_position.direction_to(last_hit_pos)
+					sparks.spark_velocity = punch_dir * 1200.0
+					
 				get_tree().current_scene.add_child(sparks)
 			
 			for hit_target in enemies_hit_this_punch:
@@ -250,7 +254,48 @@ func execute_hitbox():
 		if is_in_the_zone: stop_duration = 0.18
 		
 		Engine.time_scale = 0.1
-		await get_tree().create_timer(stop_duration, true, false, true).timeout
+		
+		if is_in_the_zone:
+			var impact_layer = CanvasLayer.new()
+			impact_layer.layer = 120 
+			var color_rect = ColorRect.new()
+			color_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			
+			var mat = ShaderMaterial.new()
+			var shader = Shader.new()
+			shader.code = """
+			shader_type canvas_item;
+			uniform sampler2D screen_texture : hint_screen_texture, filter_nearest;
+			void fragment() {
+				vec3 c = texture(screen_texture, SCREEN_UV).rgb;
+				vec3 inverted = vec3(1.0) - c; 
+				inverted.r = min(inverted.r * 1.8, 1.0); 
+				inverted.g *= 0.2; 
+				inverted.b *= 0.2; 
+				COLOR = vec4(inverted, 1.0);
+			}
+			"""
+			mat.shader = shader
+			color_rect.material = mat
+			
+			impact_layer.add_child(color_rect)
+			get_tree().current_scene.add_child(impact_layer)
+			color_rect.visible = true
+			await get_tree().create_timer(0.04, true, false, true).timeout
+			color_rect.visible = false
+			
+			await get_tree().create_timer(0.04, true, false, true).timeout
+			color_rect.visible = true
+			
+			await get_tree().create_timer(0.04, true, false, true).timeout
+			color_rect.visible = false
+			await get_tree().create_timer(0.06, true, false, true).timeout
+			
+			if is_instance_valid(impact_layer):
+				impact_layer.queue_free()
+		else:
+			await get_tree().create_timer(stop_duration, true, false, true).timeout
+			
 		Engine.time_scale = 1.0
 
 func _on_animation_finished():

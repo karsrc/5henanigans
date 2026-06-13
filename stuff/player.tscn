@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://od4bwabwgi30"]
 
 [ext_resource type="Script" uid="uid://bure06k36yobu" path="res://stuff/player.gd" id="1_onrkg"]
-[ext_resource type="PackedScene" uid="uid://c0kje66gorrbr" path="res://footstep_dust.tscn" id="2_cwgpl"]
+[ext_resource type="PackedScene" uid="uid://c0kje66gorrbr" path="res://stuff/footstep_dust.tscn" id="2_cwgpl"]
 [ext_resource type="Texture2D" uid="uid://buwf5enacntxw" path="res://addons/ASSETS/sprites/cone.png" id="2_dw050"]
 [ext_resource type="Script" uid="uid://bny1m0rolaj4m" path="res://stuff/area_2d.gd" id="3_2hs0m"]
 [ext_resource type="Script" uid="uid://dl1fmdy47fnqm" path="res://stuff/camera_2d.gd" id="3_i3pqv"]

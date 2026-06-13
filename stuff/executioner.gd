@@ -3,6 +3,8 @@ extends BaseFighter
 @onready var aim_sprite = $AimPivot/AimSprite
 @onready var black_flash_scene = preload("res://stuff/black_flash_sparks.tscn")
 @onready var attack_area = $AimPivot/AttackArea
+@export var skill_3_explosion_scene: PackedScene
+@export var skill_3_landing_scene: PackedScene
 
 # special r
 # old code but im too lazy to delete ts
@@ -13,6 +15,8 @@ var aura_tween: Tween
 var current_skill_1_cooldown: float = 0.0
 var skill_1_cooldown: float = 6.0
 @export var ce_blast_scene: PackedScene 
+
+@export var small_hit_particle_scene: PackedScene
 
 # Skill 2: CE Pulse
 var current_skill_2_cooldown: float = 0.0
@@ -474,13 +478,36 @@ func perform_skill_3():
 	$AnimatedSprite2D.play("skill3")
 
 func launch_meteor_leap():
+	if skill_3_explosion_scene:
+		var explosion = skill_3_explosion_scene.instantiate()
+		explosion.global_position = global_position + Vector2(0, 15) 
+		get_tree().current_scene.add_child(explosion)
+		
+	if has_node("AudioManager") and $AudioManager.skill_sounds.size() >= 4:
+		var sound_1: Array[AudioStream] = [$AudioManager.skill_sounds[3]]
+		$AudioManager.play_random_sound(sound_1, 1.0, 0.05, 4.0)
+		
 	var dash_direction = global_position.direction_to(get_global_mouse_position())
 	velocity = dash_direction * 1800.0
 
 func stop_meteor_leap():
 	velocity = Vector2.ZERO
-	shake_camera(10.0)
-	$AnimatedSprite2D.speed_scale = 1.0
+	
+	shake_camera(15.0)
+	
+	if skill_3_landing_scene:
+		var smoke = skill_3_landing_scene.instantiate()
+		smoke.global_position = global_position + Vector2(0, 15)
+		if has_node("AnimatedSprite2D"):
+			smoke.flip_h = $AnimatedSprite2D.flip_h
+			
+		get_tree().current_scene.add_child(smoke)
+	if has_node("AudioManager"):
+		if $AudioManager.skill_sounds.size() >= 5:
+			var land_sound: Array[AudioStream] = [$AudioManager.skill_sounds[4]]
+			$AudioManager.play_random_sound(land_sound, 1.0, 0.05, 5.0)
+		else:
+			$AudioManager.play_random_sound($AudioManager.heavy_impacts, 1.2, 0.1, 2.0)
 
 func perform_rct():
 	var rct_cost = int(max_ult_charge * 0.25)

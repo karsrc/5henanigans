@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://bsg6yuo51trxp"]
+
+[ext_resource type="Texture2D" uid="uid://6acanrgioyst" path="res://stuff/particles1.png" id="1_ibcon"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_66f5m"]
+atlas = ExtResource("1_ibcon")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v3ak8"]
+atlas = ExtResource("1_ibcon")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dc4mu"]
+atlas = ExtResource("1_ibcon")
+region = Rect2(32, 16, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_t8opo"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_66f5m")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v3ak8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dc4mu")
+}],
+"loop": false,
+"name": &"default",
+"speed": 13.0
+}]
+
+[node name="Skill3Landing" type="AnimatedSprite2D" unique_id=796901598]
+sprite_frames = SubResource("SpriteFrames_t8opo")
+frame = 2
+frame_progress = 1.0

@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://c7jjh5petkp0q" path="res://stuff/executioner.gd" id="1_3mlhv"]
 [ext_resource type="Texture2D" uid="uid://c5xaesmit26wi" path="res://stuff/Sprite-0002-Sheet.png" id="2_8nc3o"]
-[ext_resource type="PackedScene" uid="uid://uja1a3fu1rtx" path="res://skill_3_explosion.tscn" id="2_dkn6f"]
 [ext_resource type="PackedScene" uid="uid://bx3ovej0wjdih" path="res://stuff/yt_projectile.tscn" id="2_utbtc"]
 [ext_resource type="PackedScene" uid="uid://c0kje66gorrbr" path="res://stuff/footstep_dust.tscn" id="3_e1sjk"]
 [ext_resource type="PackedScene" uid="uid://b6rol5nej54j" path="res://stuff/small_hit_particle.tscn" id="3_pfoto"]
@@ -1379,7 +1378,6 @@ y_sort_enabled = true
 collision_mask = 3
 motion_mode = 1
 script = ExtResource("1_3mlhv")
-skill_3_explosion_scene = ExtResource("2_dkn6f")
 ce_blast_scene = ExtResource("2_utbtc")
 small_hit_particle_scene = ExtResource("3_pfoto")
 footstep_particle_scene = ExtResource("3_e1sjk")

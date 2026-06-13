@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://b6rol5nej54j"]
+
+[ext_resource type="Texture2D" uid="uid://6acanrgioyst" path="res://stuff/particles1.png" id="1_vigd5"]
+[ext_resource type="Script" uid="uid://y6ndaebb2ot1" path="res://stuff/small_hit_particle.gd" id="2_2ly5b"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4plo2"]
+atlas = ExtResource("1_vigd5")
+region = Rect2(0, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mtcte"]
+atlas = ExtResource("1_vigd5")
+region = Rect2(16, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iitse"]
+atlas = ExtResource("1_vigd5")
+region = Rect2(32, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_numrg"]
+atlas = ExtResource("1_vigd5")
+region = Rect2(48, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3gt0a"]
+atlas = ExtResource("1_vigd5")
+region = Rect2(64, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q3ae7"]
+atlas = ExtResource("1_vigd5")
+region = Rect2(80, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fryjc"]
+atlas = ExtResource("1_vigd5")
+region = Rect2(96, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e7rmu"]
+atlas = ExtResource("1_vigd5")
+region = Rect2(112, 64, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_qnch5"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4plo2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mtcte")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iitse")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_numrg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3gt0a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q3ae7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fryjc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e7rmu")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="SmallHitParticle" type="AnimatedSprite2D" unique_id=416197958]
+y_sort_enabled = true
+sprite_frames = SubResource("SpriteFrames_qnch5")
+frame = 1
+frame_progress = 0.6028132
+script = ExtResource("2_2ly5b")

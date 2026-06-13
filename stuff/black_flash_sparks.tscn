@@ -1,22 +1,109 @@
 [gd_scene format=3 uid="uid://cj2lqbvda5lht"]
 
-[ext_resource type="Texture2D" uid="uid://c3q4hyk7auvsw" path="res://addons/ASSETS/sprites/blackflash.png" id="1_1mxf1"]
-[ext_resource type="AudioStream" uid="uid://cwbxpicb36xeh" path="res://addons/ASSETS/sounds/blackflash.wav" id="1_xiwc8"]
 [ext_resource type="Script" uid="uid://c88yjwhh14two" path="res://stuff/black_flash_sparks.gd" id="2_1pdn6"]
+[ext_resource type="Texture2D" uid="uid://6acanrgioyst" path="res://stuff/particles1.png" id="2_w0gp6"]
+[ext_resource type="AudioStream" uid="uid://daekaklqi7r8p" path="res://addons/ASSETS/sounds/kokusen2-1.wav" id="3_06qjh"]
+[ext_resource type="AudioStream" uid="uid://d20mcb1w731f0" path="res://addons/ASSETS/sounds/kokusen2-2.wav" id="4_npfv3"]
 
-[node name="BlackFlashSparks" type="CPUParticles2D" unique_id=1641354680]
-emitting = false
-amount = 6
-texture = ExtResource("1_1mxf1")
-explosiveness = 1.0
-spread = 180.0
-gravity = Vector2(0, 0)
-initial_velocity_min = 297.03
-initial_velocity_max = 504.95
-angular_velocity_max = 720.0
-damping_min = 74.257
-damping_max = 100.0
+[sub_resource type="AtlasTexture" id="AtlasTexture_8ocjk"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(0, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_330oo"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(16, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_degws"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(32, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jy46g"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(48, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x56km"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(64, 80, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_h0ghu"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8ocjk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_330oo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_degws")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jy46g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x56km")
+}],
+"loop": true,
+"name": &"default",
+"speed": 18.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fihuo"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(0, 96, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wskbl"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(16, 96, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ssade"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(32, 96, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2yccq"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(48, 96, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_odsuf"]
+atlas = ExtResource("2_w0gp6")
+region = Rect2(64, 96, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_hxkon"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fihuo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wskbl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ssade")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2yccq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_odsuf")
+}],
+"loop": true,
+"name": &"default",
+"speed": 18.0
+}]
+
+[node name="BlackFlashSparks" type="Node2D" unique_id=1812953471]
 script = ExtResource("2_1pdn6")
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=2144438831]
-stream = ExtResource("1_xiwc8")
+[node name="HugeSpark" type="AnimatedSprite2D" parent="." unique_id=1364473493]
+sprite_frames = SubResource("SpriteFrames_h0ghu")
+frame_progress = 0.046072062
+
+[node name="SmallSpark" type="AnimatedSprite2D" parent="." unique_id=342187954]
+sprite_frames = SubResource("SpriteFrames_hxkon")
+frame_progress = 0.6012127
+
+[node name="Audio1" type="AudioStreamPlayer2D" parent="." unique_id=1940351629]
+stream = ExtResource("3_06qjh")
+
+[node name="Audio2" type="AudioStreamPlayer2D" parent="." unique_id=425638747]
+stream = ExtResource("4_npfv3")

@@ -4,6 +4,8 @@ extends CharacterBody2D
 @onready var anim = $AnimatedSprite2D
 @onready var soft_collision = $SoftCollision
 
+var small_hit_particle_scene = preload("res://stuff/small_hit_particle.tscn")
+
 @export_enum("slime", "dragon") var enemy_type: String = "dragon"
 
 var color_prefix: String = ""
@@ -124,6 +126,16 @@ func take_damage(damage_amount: int, source_position: Vector2 = Vector2.ZERO, kn
 	var flash_tween = create_tween()
 	anim.self_modulate = Color(20, 20, 20, 1) 
 	flash_tween.tween_property(anim, "self_modulate", Color(1, 1, 1, 1), 0.1)
+	
+	if small_hit_particle_scene:
+		var smoke = small_hit_particle_scene.instantiate()
+		get_tree().current_scene.add_child(smoke)
+		smoke.set_as_top_level(true)
+		var random_push = Vector2(randf_range(-45, 45), randf_range(-55, -5))
+		smoke.global_position = global_position + random_push
+		smoke.scale = Vector2(3.5, 3.5)
+		
+		smoke.z_index = 1
 	
 	if source_position != Vector2.ZERO:
 		var knockback_dir = source_position.direction_to(global_position)

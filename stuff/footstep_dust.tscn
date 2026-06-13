@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c0kje66gorrbr"]
 
 [ext_resource type="Texture2D" uid="uid://6acanrgioyst" path="res://stuff/particles1.png" id="1_hguae"]
-[ext_resource type="Script" uid="uid://wivo2phm2w57" path="res://footstep_dust.gd" id="2_jl672"]
+[ext_resource type="Script" uid="uid://wivo2phm2w57" path="res://stuff/footstep_dust.gd" id="2_jl672"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5tc7v"]
 atlas = ExtResource("1_hguae")
@@ -34,5 +34,5 @@ animations = [{
 
 [node name="FootstepDust" type="AnimatedSprite2D" unique_id=1057685575]
 sprite_frames = SubResource("SpriteFrames_ph158")
-frame_progress = 0.6345272
+frame_progress = 0.7717836
 script = ExtResource("2_jl672")
